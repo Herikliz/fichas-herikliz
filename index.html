@@ -497,7 +497,7 @@ function managePassword() {
     }
 
     if (charData.password && charData.password.trim() !== "") {
-        let oldPass = prompt("Digite a senha atual (ou a senha mestra) para autorizar a mudança:");
+        let oldPass = prompt("Digite a senha atual para autorizar a mudança:");
         if (oldPass === charData.password || oldPass === MASTER_PASSWORD) {
             let newPass = prompt("Digite a nova senha (ou deixe totalmente em branco para REMOVER a proteção atual):");
             if (newPass !== null) {
