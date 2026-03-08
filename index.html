@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ficha New Seas OP RPG (Cloud)</title>
+<title>D&D 5E Character & Coin Calculator (Cloud)</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -18,9 +19,12 @@
   --danger: #dc3545;
   --warning: #ffc107;
   --info: #0dcaf0;
+  --secondary: #6c757d;
   --dark: #000;
 }
+
 * { box-sizing: border-box; }
+
 body { 
   background-color: var(--bg-color); 
   color: var(--text); 
@@ -28,6 +32,7 @@ body {
   padding: 0;
   font-family: 'Lora', serif; 
 }
+
 header { 
   background-color: #111; 
   padding: 15px; 
@@ -36,1118 +41,1050 @@ header {
   font-weight: bold; 
   border-bottom: 2px solid #333; 
   display: flex; 
-  flex-direction: column;
-  justify-content: center; 
+  justify-content: space-between; 
   align-items: center;
   font-family: 'Segoe UI', sans-serif;
-  gap: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-.cloud-controls { display: flex; align-items: center; justify-content: center; gap: 5px; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 6px; border: 1px dashed #555; }
-.cloud-controls input { width: 180px; padding: 6px 10px; font-size: 13px; font-family: 'Segoe UI', sans-serif; border-radius: 4px; text-align: center;}
+
+.cloud-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0,0,0,0.3);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px dashed #555;
+}
+.cloud-controls input { width: 130px; padding: 4px 8px; font-size: 12px; font-family: 'Segoe UI', sans-serif; border-radius: 4px; }
 .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #dc3545; margin-right: 5px; }
 .status-dot.online { background: #198754; box-shadow: 0 0 5px #198754; }
 .status-dot.syncing { background: #ffc107; box-shadow: 0 0 5px #ffc107; }
-.container { max-width: 1400px; margin: 20px auto; padding: 0 15px; }
+
+.container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+
+.char-tabs-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: thin; }
+.char-tab { background: #333; border: 1px solid #555; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: 0.2s; font-weight: bold; font-family: 'Segoe UI', sans-serif; }
+.char-tab:hover { background: #444; }
+.char-tab.active { background: var(--warning); color: black; border-color: var(--warning); }
+.char-tab-add { background: var(--success); border-color: var(--success); color: white; }
+
 .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 3px; color: white; transition: 0.2s; font-family: 'Segoe UI', sans-serif;}
 .btn-outline { background: transparent; border: 1px solid currentColor; color: inherit; }
-.btn-outline:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-outline:hover { background: rgba(255,255,255,0.1); }
 .btn-success { background-color: var(--success); }
-input, textarea, select { background-color: #2a2a2a; color: var(--text); border: 1px solid #444; font-family: 'Lora', serif; border-radius: 4px; padding: 6px; width: 100%; font-size: 13px;}
-input:focus:not(:disabled), textarea:focus:not(:disabled), select:focus:not(:disabled) { outline: none; border-color: var(--warning); background-color: #333; }
-input:disabled, textarea:disabled, select:disabled { background-color: #1a1a1a; color: #666; cursor: not-allowed; border-color: #333; }
-.currency-input { display: flex; align-items: center; background-color: #2a2a2a; border: 1px solid #444; border-radius: 4px; overflow: hidden; transition: 0.2s;}
-.currency-input:focus-within { border-color: var(--warning); background-color: #333; }
-.currency-input span { padding-left: 10px; padding-right: 5px; color: #b3b3b3; font-weight: bold; font-family: 'Lora', serif; }
-.currency-input input { border: none; background: transparent; box-shadow: none; border-radius: 0; padding-left: 0; width: 100%; margin: 0;}
-.currency-input input:focus { outline: none; border: none; background: transparent; }
-textarea { resize: vertical; min-height: 80px; text-align: justify; line-height: 1.5; }
+.btn-danger { background-color: var(--danger); }
+.btn-dark { background-color: var(--dark); color: #fff; }
+.btn:hover { filter: brightness(1.2); }
+
+input, textarea, select { background-color: #2a2a2a; color: var(--text); border: 1px solid #444; font-family: 'Lora', serif; border-radius: 4px; padding: 5px; width: 100%; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--warning); background-color: #333; }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+textarea { box-sizing: border-box; resize: vertical; min-height: 80px; text-align: justify; line-height: 1.5; }
 .box-title, label { font-family: 'Cinzel', serif; color: #b3b3b3; }
-.main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;}
-.three-col-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: start; margin-bottom: 20px;}
-.box { border: 1px solid #444; padding: 15px; border-radius: 8px; margin-bottom: 20px; background-color: rgba(0,0,0,0.2); display: flex; flex-direction: column; }
-.box-title { font-size: 13px; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; border-bottom: 1px dashed #444; padding-bottom: 8px;}
-.input-group { margin-bottom: 10px; }
-.input-group label { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 3px; display: block;}
-.input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-.input-row > div { flex: 1; }
-.attr-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; border: 1px solid #333;}
-.attr-label { font-family: 'Cinzel', serif; font-size: 14px; font-weight: bold; color: var(--warning); width: 100px;}
-.attr-input-group { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-grow: 1; }
-.attr-input { width: 100px; text-align: right; font-size: 16px; font-family: 'Cinzel', serif; font-weight: bold; }
-.attr-total { font-size: 11px; color: #aaa; font-family: 'Segoe UI', sans-serif;}
-.conditional-selects { margin-top: 5px; padding-top: 5px; border-top: 1px dashed #555; display: flex; flex-direction: column; gap: 5px; }
-.avisoErro { color: var(--danger); font-size: 11px; font-family: 'Segoe UI', sans-serif; font-weight: bold; margin-top: 5px; display: none; text-align: right;}
-pre#resBox { background: #111; padding: 20px; border-radius: 6px; border: 1px solid #444; white-space: pre-wrap; word-wrap: break-word; font-family: 'Segoe UI', monospace; font-size: 14px; min-height: 500px; color: #ddd; line-height: 1.4; overflow-x: auto;}
-@media (max-width: 1000px) {
-  .main-grid, .three-col-grid { grid-template-columns: 1fr; }
+
+.info-card { background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 20px; position: relative; }
+.header-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background-color: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid #333; }
+.header-details div { display: flex; flex-direction: column; }
+.header-details label { font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 3px;}
+.level-badge { background: #111; border: 1px solid #555; padding: 5px; border-radius: 4px; text-align: center; color: var(--warning); font-weight: bold; font-family: 'Segoe UI', sans-serif; }
+.action-buttons { position: absolute; top: 20px; right: 20px; display: flex; gap: 5px;}
+
+.page-nav { display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 0; overflow-x: auto; white-space: nowrap;}
+.page-nav button { background: transparent; border: none; color: #888; font-family: 'Cinzel', serif; font-size: 16px; font-weight: bold; padding: 10px 15px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; }
+.page-nav button.active { color: var(--warning); border-bottom-color: var(--warning); }
+.page-nav button:hover:not(.active) { color: white; }
+
+.main-grid { display: grid; grid-template-columns: 1fr 2.5fr 1fr; gap: 20px; }
+.page-2-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+.spell-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+.box { border: 1px solid #444; padding: 15px; border-radius: 8px; margin-bottom: 15px; background-color: rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+.box-title { font-size: 13px; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+
+.char-image-container { margin-bottom: 10px; border: 1px dashed #555; border-radius: 4px; background: rgba(0,0,0,0.4); overflow: hidden; text-align: center; position: relative; aspect-ratio: 3 / 4; width: 100%; display: flex; align-items: center; justify-content: center; }
+.char-image-container:hover { border-color: var(--warning); }
+.char-image-container img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.char-image-placeholder { padding: 20px; color: #888; font-size: 12px; cursor: pointer; display: block; }
+
+.attributes-container { display: flex; flex-direction: column; gap: 15px; }
+.attribute-block { border: 1px solid #444; border-radius: 8px; padding: 10px; background: rgba(0,0,0,0.2); }
+.attr-header { text-align: center; font-weight: bold; color: var(--warning); margin-bottom: 10px; font-family: 'Cinzel', serif; font-size: 12px; }
+.attr-inputs { display: flex; justify-content: center; align-items: center; gap: 10px; }
+.attr-score { width: 50px; text-align: center; font-size: 20px; border: none; background: transparent; font-family: 'Cinzel', serif; color: white; border-bottom: 1px solid #555; border-radius: 0; }
+.attr-mod { width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 16px; border: 1px solid #555; border-radius: 50%; background-color: #111; color: white; font-weight: bold; }
+.skill-list { background: #111; padding: 8px; border-radius: 4px; border: 1px solid #333; margin-top: 10px; }
+.skill-item { display: flex; align-items: center; margin-bottom: 4px; font-size: 11px; font-family: 'Segoe UI', sans-serif; }
+.skill-item input[type="checkbox"] { appearance: none; width: 12px; height: 12px; border: 1px solid #888; border-radius: 50%; margin-right: 6px; cursor: pointer; outline: none; background: transparent; }
+.skill-item input[type="checkbox"]:checked { background-color: var(--warning); border-color: var(--warning); }
+.skill-item label { color: #ccc; cursor: pointer; flex-grow: 1; font-family: 'Segoe UI', sans-serif;}
+.skill-item .bonus { font-weight: bold; min-width: 25px; text-align: right; color: white; }
+.passive-box { border: 1px solid #444; border-radius: 8px; text-align: center; padding: 10px; background-color: rgba(0,0,0,0.2); margin-top: 5px; }
+.passive-box span, .passive-box input { display: block; width: 100%; font-size: 20px; font-weight: bold; color: white; font-family: 'Cinzel', serif; text-align: center; border: none; background: transparent; }
+
+.combat-stats { display: flex; gap: 10px; justify-content: space-between; margin-bottom: 20px;}
+.combat-box { border: 1px solid #444; border-radius: 8px; text-align: center; padding: 15px; flex: 1; background-color: rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center;}
+.combat-box input { width: 100%; text-align: center; font-size: 26px; border: none; background: transparent; font-family: 'Cinzel', serif; color: white;}
+
+.hp-row { display: flex; gap: 10px; margin-bottom: 15px; }
+.hp-box { flex: 1; border-bottom: 1px solid #555; padding-bottom: 5px; text-align: center;}
+.hp-input-group { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 5px;}
+.hp-input-group input { width: 60px; text-align: center; font-size: 24px; font-family: 'Cinzel', serif; border: none; background: transparent; color: white; padding: 5px 0;}
+
+.ds-checkbox { appearance: none; width: 14px; height: 14px; border: 2px solid #666; border-radius: 50%; background: transparent; cursor: pointer; margin: 0 2px; }
+.ds-checkbox:checked { background: #bbb; border-color: #bbb; }
+
+.dynamic-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.dynamic-row { display: flex; gap: 5px; align-items: flex-start; }
+.btn-remove { background: var(--danger); color: white; border: none; border-radius: 4px; padding: 6px 10px; cursor: pointer; font-weight: bold; }
+.btn-add { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed #555; color: #aaa; padding: 8px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-family: 'Segoe UI', sans-serif;}
+.btn-add:hover { background: rgba(255,255,255,0.1); color: white; border-color: #888; }
+
+.armor-item { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #111; border: 1px solid #333; border-radius: 4px; font-size: 12px; font-family: 'Segoe UI', sans-serif; }
+.armor-item span { color: white; }
+.armor-item label { color: #aaa; cursor: pointer; font-family: 'Segoe UI', sans-serif;}
+.armor-item input[type="radio"], .armor-item input[type="checkbox"] { margin-right: 5px; }
+
+.coin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 15px;}
+.coin-card { background-color: #111; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #333;}
+.coin-header { padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-family: 'Segoe UI', sans-serif;}
+.coin-header-title { font-size: 1rem; color: #fff;}
+.coin-header small { font-size: 0.75rem; font-weight: normal; opacity: 0.8; display: block; margin-top: 2px; line-height: 1.2; }
+.coin-actions { padding: 8px; background-color: rgba(0,0,0,0.3); display: flex; gap: 5px; }
+.coin-input { padding: 6px; border: 1px solid #444; border-radius: 4px; background: #222; color: white; width: 90px; }
+
+.bg-pl { border-top: 3px solid #f1f1f1; } .bg-po { border-top: 3px solid var(--warning); } .bg-pe { border-top: 3px solid var(--info); }
+.bg-pp { border-top: 3px solid var(--secondary); } .bg-pc { border-top: 3px solid var(--danger); } .bg-fl { border-top: 3px solid var(--success); }
+
+.info-stats { font-size: 1rem; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid #444; font-family: 'Segoe UI', sans-serif;}
+.allies-container { display: flex; gap: 20px; height: 100%; align-items: stretch; }
+.allies-textarea { flex: 1; min-height: 250px; resize: none; border: none; background: transparent; padding: 10px; font-family: 'Lora', serif; }
+.faction-container { width: 40%; display: flex; flex-direction: column; border: 2px solid #555; border-radius: 8px; background: rgba(0,0,0,0.2); position: relative; overflow: hidden; }
+.faction-container input { text-align: center; font-weight: bold; border: none; border-bottom: 1px solid #555; background: rgba(0,0,0,0.4); color: white; padding: 10px; font-family: 'Cinzel', serif; border-radius: 0; }
+.faction-image-box { flex-grow: 1; position: relative; display: flex; align-items: center; justify-content: center; min-height: 200px; }
+.faction-image-box label { cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; margin: 0; }
+.faction-image-box img { display: none; width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
+.faction-footer { text-align: center; font-size: 12px; border-top: 1px solid #555; padding: 6px; color: #b3b3b3; font-family: 'Cinzel', serif; background: rgba(0,0,0,0.4); letter-spacing: 2px;}
+
+.locked-el {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
 }
-optgroup { color: var(--info); font-family: 'Cinzel', serif; font-weight: bold; }
-option { color: var(--text); font-family: 'Lora', serif; font-weight: normal; }
+
+@media (max-width: 900px) {
+  .main-grid, .page-2-grid, .header-grid, .spell-grid { grid-template-columns: 1fr; }
+  .action-buttons { position: relative; top: 0; right: 0; justify-content: flex-end; margin-bottom: 10px; }
+  .allies-container { flex-direction: column; }
+  .faction-container { width: 100%; min-height: 250px; }
+}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="cloud-controls">
-    <input type="text" id="doc-id" placeholder="ID da Ficha na Nuvem" title="Digite para salvar/puxar na nuvem" onchange="changeDocId(this.value)">
-    <button class="btn btn-outline" style="font-size: 0.8rem; padding: 6px;" onclick="loadFromCloud()" title="Puxar dados">⬇️ Puxar</button>
-    <button id="btn-senha" class="btn btn-outline" style="font-size: 0.8rem; padding: 6px; color: var(--warning); border-color: var(--warning);" onclick="managePassword()" title="Definir ou remover senha">🔑 Senha</button>
-  </div>
   <span style="display:flex; align-items:center; gap:10px;">
-    🏴‍☠️ New Seas Ficha & Atributos
+    🏰 D&D 5E Ficha e Moedas
     <div id="db-status" class="status-dot" title="Status do Banco de Dados"></div>
   </span>
+  <div class="cloud-controls">
+    <input type="text" id="mesa-id" placeholder="ID da Mesa" title="Digite o ID e aperte Enter para carregar" onchange="changeMesaId(this.value)">
+    <button class="btn btn-outline" style="font-size: 0.7rem; padding: 4px;" onclick="loadFromCloud()" title="Baixar dados da Nuvem">⬇️ Puxar</button>
+  </div>
+  <div>
+    <button class="btn btn-outline" style="font-size: 0.8rem; padding: 5px;" onclick="exportData()">💾 Salvar Arquivo Local</button>
+    <button class="btn btn-outline" style="font-size: 0.8rem; padding: 5px;" onclick="document.getElementById('importFile').click()">📂 Carregar Local</button>
+    <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importData(event)">
+  </div>
 </header>
 
 <div class="container">
-  <div class="three-col-grid">
-      <div class="box">
-          <div class="box-title" style="color: var(--info);">Identidade</div>
-          <div class="input-group"><label>Nome do Personagem</label><input type="text" id="pc-name" oninput="updateField('name', null, this.value)"></div>
-          <div class="input-row">
-              <div class="input-group"><label>Alcunha</label><input type="text" id="info-alcunha" oninput="updateField('info', 'alcunha', this.value)"></div>
-              <div class="input-group"><label>Idade</label><input type="text" id="info-idade" placeholder="Mín: 15" oninput="updateField('info', 'idade', this.value)"></div>
-          </div>
-          <div class="input-row">
-              <div class="input-group">
-                  <label>Sexo</label>
-                  <select id="info-sexo" onchange="updateField('info', 'sexo', this.value)">
-                      <option value="Masculino">Masculino</option>
-                      <option value="Feminino">Feminino</option>
-                  </select>
-              </div>
-              <div class="input-group">
-                  <label>Sangue</label>
-                  <select id="info-sangue" onchange="updateField('info', 'sangue', this.value)">
-                      <option value="A+">A+</option>
-                      <option value="A-">A-</option>
-                      <option value="B+">B+</option>
-                      <option value="B-">B-</option>
-                      <option value="AB+">AB+</option>
-                      <option value="AB-">AB-</option>
-                      <option value="O+">O+</option>
-                      <option value="O-">O-</option>
-                  </select>
-              </div>
-              <div class="input-group"><label>Altura</label><input type="text" id="info-altura" oninput="updateField('info', 'altura', this.value)"></div>
-          </div>
-          <div class="input-row">
-              <div class="input-group">
-                  <label>Nacionalidade</label>
-                  <select id="info-nacionalidade" onchange="updateField('info', 'nacionalidade', this.value)"></select>
-              </div>
-              <div class="input-group">
-                  <label>Localização Atual</label>
-                  <select id="info-localizacao" onchange="updateField('info', 'localizacao', this.value)"></select>
-              </div>
-          </div>
-      </div>
+  
+  <div class="char-tabs-container" id="tabs-container"></div>
 
-      <div class="box">
-          <div class="box-title" style="color: var(--warning);">Mecânicas Principais</div>
-          <div class="input-row">
-              <div class="input-group">
-                  <label>Raça</label>
-                  <select id="info-raca" onchange="updateField('info', 'raca', this.value)"></select>
-                  <div id="box-extraRaca" class="conditional-selects" style="display: none; flex-direction: row; gap: 5px;">
-                      <select id="info-selDF" onchange="updateField('info', 'selDF', this.value)" style="flex: 1;"><option value="d">Destreza</option><option value="f">Força</option></select>
-                      <select id="info-selRV" onchange="updateField('info', 'selRV', this.value)" style="display:none; flex: 1;"><option value="r">Resistência</option><option value="v">Velocidade</option></select>
-                  </div>
-              </div>
-              <div class="input-group" id="container-linhagem">
-                  <label>Linhagem</label>
-                  <select id="info-linhagem" onchange="updateField('info', 'linhagem', this.value)"></select>
-                  <div id="box-extraLin" class="conditional-selects" style="display: none; flex-direction: row; gap: 5px;">
-                      <select id="info-selLinDF" onchange="updateField('info', 'selLinDF', this.value)" style="display:none; flex: 1;"><option value="d">Destreza</option><option value="f">Força</option></select>
-                      <select id="info-selLinRV" onchange="updateField('info', 'selLinRV', this.value)" style="display:none; flex: 1;"><option value="r">Resistência</option><option value="v">Velocidade</option></select>
-                      <select id="info-selLin4" onchange="updateField('info', 'selLin4', this.value)" style="display:none; flex: 1;"><option value="d">Destreza</option><option value="f">Força</option><option value="r">Resistência</option><option value="v">Velocidade</option></select>
-                      <select id="info-selLinEspAmi" onchange="updateField('info', 'selLinEspAmi', this.value)" style="display:none; flex: 1;"><option value="esp">Espírito</option><option value="ami">Akuma no Mi</option></select>
-                  </div>
-              </div>
-          </div>
-          
-          <div class="input-row" style="border-top: 1px dashed #444; padding-top: 12px; margin-top: 5px;">
-              <div class="input-group">
-                  <label>Classe Inicial</label>
-                  <select id="info-classe" onchange="updateField('info', 'classe', this.value)"></select>
-              </div>
-              <div class="input-group" id="box-selClasseDF" style="display: none;">
-                  <label>Buff Combatente (+)</label>
-                  <select id="info-selClasseDF" onchange="updateField('info', 'selClasseDF', this.value)">
-                      <option value="d">Destreza</option>
-                      <option value="f">Força</option>
-                  </select>
-              </div>
-          </div>
-          <div class="input-row" style="margin-bottom:0;">
-              <div class="input-group"><label>Classe: 5.000</label><select id="info-classe2" onchange="updateField('info', 'classe2', this.value)"></select></div>
-              <div class="input-group"><label>Classe: 10.000</label><select id="info-classe3" onchange="updateField('info', 'classe3', this.value)"></select></div>
-          </div>
-          <div class="input-row">
-              <div class="input-group"><label>Classe: 20.000</label><select id="info-classe4" onchange="updateField('info', 'classe4', this.value)"></select></div>
-              <div class="input-group"><label>Classe: 35.000</label><select id="info-classe5" onchange="updateField('info', 'classe5', this.value)"></select></div>
-          </div>
-      </div>
+  <div class="info-card">
+    <div class="action-buttons" id="char-action-buttons"></div>
 
-      <div class="box">
-          <div class="box-title" style="color: var(--success);">Social e Estilos</div>
-          <div class="input-row">
-              <div class="input-group">
-                  <label>Recompensa</label>
-                  <div class="currency-input">
-                      <span>฿</span>
-                      <input type="text" id="info-recompensa" placeholder="Vazio = 🔒" oninput="formatCurrency('info', 'recompensa', this)">
-                  </div>
-              </div>
-              <div class="input-group">
-                  <label>Berries</label>
-                  <div class="currency-input">
-                      <span>฿</span>
-                      <input type="text" id="info-berries" placeholder="Vazio = 0" oninput="formatCurrency('info', 'berries', this)">
-                  </div>
-              </div>
-          </div>
-
-          <div class="input-row">
-              <div class="input-group">
-                  <label>Organização</label>
-                  <select id="info-orgTipo" onchange="updateField('info', 'orgTipo', this.value)">
-                      <option value="Pirata">Pirata</option>
-                      <option value="Marinha">Marinha</option>
-                      <option value="Governo Mundial">Governo Mundial</option>
-                  </select>
-              </div>
-              <div class="input-group" id="box-tripulacao">
-                  <label>Nome da Tripulação</label>
-                  <input type="text" id="info-tripulacao" oninput="updateField('info', 'tripulacao', this.value)">
-              </div>
-          </div>
-          <div class="input-row" id="box-patente-salario" style="display: none; margin-top: -5px;">
-              <div class="input-group"><label>Patente</label><input type="text" id="info-patente" oninput="updateField('info', 'patente', this.value)"></div>
-              <div class="input-group"><label>Salário</label><input type="text" id="info-salario" oninput="updateField('info', 'salario', this.value)"></div>
-          </div>
-          
-          <label style="font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 3px; display: block; border-top: 1px dashed #444; padding-top: 10px;">Estilos de Luta</label>
-          <div id="box-estilo-mink" class="input-row" style="display: none; margin-bottom: 5px;">
-              <input type="text" value="Electro" disabled style="color: var(--warning); font-weight: bold; background-color: #1a1a1a; cursor: not-allowed; text-align: center;">
-          </div>
-          
-          <div class="input-row" style="margin-bottom: 5px;">
-              <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
-                  <select id="info-estilo1" onchange="updateField('info', 'estilo1', this.value)"></select>
-                  <input type="text" id="info-freestyle1" placeholder="Nome do Freestyle" oninput="updateField('info', 'freestyle1', this.value)">
-              </div>
-              <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
-                  <select id="info-estilo2" onchange="updateField('info', 'estilo2', this.value)"></select>
-                  <input type="text" id="info-freestyle2" placeholder="Nome do Freestyle" oninput="updateField('info', 'freestyle2', this.value)">
-              </div>
-          </div>
-          <div class="input-row">
-              <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
-                  <select id="info-estilo3" onchange="updateField('info', 'estilo3', this.value)"></select>
-                  <input type="text" id="info-freestyle3" placeholder="Nome do Freestyle" oninput="updateField('info', 'freestyle3', this.value)">
-              </div>
-              <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
-                  <select id="info-estilo4" onchange="updateField('info', 'estilo4', this.value)"></select>
-                  <input type="text" id="info-freestyle4" placeholder="Nome do Freestyle" oninput="updateField('info', 'freestyle4', this.value)">
-              </div>
-          </div>
-          
+    <div class="header-grid">
+      <div class="char-name">
+        <label>NOME DO PERSONAGEM</label>
+        <input type="text" id="pc-name" oninput="updateField('name', null, this.value)">
       </div>
+      <div class="header-details">
+        <div><label>Classe & Nível</label><input type="text" id="info-classLevel" placeholder="Ex: Guerreiro 2" oninput="updateField('info', 'classLevel', this.value); updateUI();"></div>
+        <div style="display: flex; flex-direction: row; gap: 10px;">
+            <div style="flex: 1;"><label>Nível Geral</label><div class="level-badge" id="overall-level">1</div></div>
+            <div style="flex: 1;"><label>Proficiência</label><div class="level-badge" id="prof-bonus" style="color: var(--success);">+2</div></div>
+        </div>
+        <div><label>Pontos de Experiência</label><input type="text" id="info-xp" oninput="updateField('info', 'xp', this.value)"></div>
+        <div><label>Antecedente</label><input type="text" id="info-background" oninput="updateField('info', 'background', this.value)"></div>
+        <div><label>Nome do Jogador</label><input type="text" id="info-playerName" oninput="updateField('info', 'playerName', this.value)"></div>
+        <div><label>Raça</label><input type="text" id="info-race" oninput="updateField('info', 'race', this.value)"></div>
+        <div style="grid-column: span 3;">
+            <label>Alinhamento</label>
+            <select id="info-alignment" onchange="updateField('info', 'alignment', this.value)">
+                <option value="">Selecione...</option>
+                <option value="Leal e Bom">Leal e Bom</option>
+                <option value="Leal e Neutro">Leal e Neutro</option>
+                <option value="Leal e Mau">Leal e Mau</option>
+                <option value="Neutro e Bom">Neutro e Bom</option>
+                <option value="Neutro">Neutro</option>
+                <option value="Neutro e Mau">Neutro e Mau</option>
+                <option value="Caótico e Bom">Caótico e Bom</option>
+                <option value="Caótico e Neutro">Caótico e Neutro</option>
+                <option value="Caótico e Mau">Caótico e Mau</option>
+            </select>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="main-grid">
+  <div class="page-nav">
+      <button id="nav-btn-1" class="active" onclick="switchPage(1)">Página Principal</button>
+      <button id="nav-btn-2" onclick="switchPage(2)">História e Detalhes</button>
+      <button id="nav-btn-3" onclick="switchPage(3)">Magias</button>
+  </div>
+
+  <div id="page-1" class="main-grid">
+    
+    <div class="attributes-container" id="attributes-wrapper"></div>
+
     <div>
-        <div class="box">
-            <div class="box-title">Atributos Base</div>
-            <div class="attr-row">
-                <span class="attr-label">Força</span>
-                <div class="attr-input-group"><input type="text" class="attr-input" id="stat-f" placeholder="0" oninput="formatAndSave('stats', 'f', this)"><span class="attr-total" id="total-f">Total: 0</span></div>
+      <div class="combat-stats">
+        
+        <div class="combat-box">
+          <label style="font-size:10px; margin-bottom: 5px;">CLASSE DE ARMADURA</label>
+          <input type="text" id="combat-ac-total" readonly tabindex="-1" style="color: var(--warning); margin-bottom: 5px;" title="CA Total Calculada">
+          <div style="display: flex; gap: 5px; justify-content: center; font-size: 10px; color: #b3b3b3; font-family: 'Segoe UI', sans-serif;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <input type="number" id="combat-ac" placeholder="10" oninput="updateField('combat', 'ac', this.value); updateUI();" style="font-size: 14px; width: 45px; text-align: center; padding: 2px;">
+              <span style="margin-top: 3px;">BASE</span>
             </div>
-            <div class="attr-row">
-                <span class="attr-label">Destreza</span>
-                <div class="attr-input-group"><input type="text" class="attr-input" id="stat-d" placeholder="0" oninput="formatAndSave('stats', 'd', this)"><span class="attr-total" id="total-d">Total: 0</span></div>
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <input type="number" id="combat-ac-bonus" placeholder="0" oninput="updateField('combat', 'acBonus', this.value); updateUI();" style="font-size: 14px; width: 45px; text-align: center; padding: 2px;">
+              <span style="margin-top: 3px;">EXTRA</span>
             </div>
-            <div class="attr-row">
-                <span class="attr-label">Resistência</span>
-                <div class="attr-input-group"><input type="text" class="attr-input" id="stat-r" placeholder="0" oninput="formatAndSave('stats', 'r', this)"><span class="attr-total" id="total-r">Total: 0</span></div>
-            </div>
-            <div class="attr-row" style="margin-bottom: 0;">
-                <span class="attr-label">Velocidade</span>
-                <div class="attr-input-group"><input type="text" class="attr-input" id="stat-v" placeholder="0" oninput="formatAndSave('stats', 'v', this)"><span class="attr-total" id="total-v">Total: 0</span></div>
-            </div>
-            <div id="avisoBase" class="avisoErro"></div>
+          </div>
         </div>
 
-        <div class="box" id="box-velocidade" style="display:none;">
-            <div class="box-title" style="color: var(--info);">Sub-Atributos de Velocidade</div>
-            <div style="display:flex; gap: 10px;">
-                <div style="flex:1"><label style="font-size: 10px;">Reflexo</label><input type="text" id="sub-refl" placeholder="0" oninput="formatAndSave('substats', 'refl', this)"></div>
-                <div style="flex:1"><label style="font-size: 10px;">Velocidade Corporal</label><input type="text" id="sub-vcorp" placeholder="0" oninput="formatAndSave('substats', 'vcorp', this)"></div>
-            </div>
-            <div id="avisoVel" class="avisoErro"></div>
+        <div class="combat-box">
+          <label style="font-size:10px; margin-bottom: 5px;">INICIATIVA</label>
+          <input type="text" id="combat-initiative-total" readonly tabindex="-1" style="color: var(--warning); margin-bottom: 5px;">
+          <div style="display: flex; gap: 5px; justify-content: center; font-size: 10px; color: #b3b3b3; font-family: 'Segoe UI', sans-serif;">
+            <div style="display: flex; flex-direction: column; align-items: center;"><input type="text" id="combat-init-dex" readonly tabindex="-1" style="font-size: 14px; width: 45px; text-align: center; padding: 2px; color: #aaa;"><span style="margin-top: 3px;">DES</span></div>
+            <div style="display: flex; flex-direction: column; align-items: center;"><input type="number" id="combat-init-bonus" placeholder="0" oninput="updateField('combat', 'initBonus', this.value); updateUI();" style="font-size: 14px; width: 45px; text-align: center; padding: 2px;"><span style="margin-top: 3px;">EXTRA</span></div>
+          </div>
         </div>
 
-        <div class="box">
-            <div class="box-title" style="color: #a461ff;">Espírito</div>
-            <div style="margin-bottom: 10px;">
-                <label style="font-size: 10px;">Espírito Base</label>
-                <input type="text" id="stat-esp" placeholder="🔒 Bloqueado" disabled oninput="formatAndSave('stats', 'esp', this)" style="font-size: 16px; font-weight: bold; font-family: 'Cinzel', serif; text-align: right;">
-                <span id="total-esp" class="attr-total" style="display:block; text-align:right;">Total: 0</span>
-            </div>
-            <div id="box-haki" style="display:none; padding-top:10px; border-top: 1px dashed #444;">
-                <div style="display:flex; gap: 10px; margin-bottom: 5px;">
-                    <div style="flex:1"><label style="font-size: 10px;">Armamento</label><input type="text" id="sub-hArm" placeholder="0" oninput="formatAndSave('substats', 'hArm', this)"></div>
-                    <div style="flex:1"><label style="font-size: 10px;">Observação</label><input type="text" id="sub-hObs" placeholder="0" oninput="formatAndSave('substats', 'hObs', this)"></div>
-                    <div style="flex:1"><label style="font-size: 10px;">Rei</label><input type="text" id="sub-hRei" placeholder="0" oninput="formatAndSave('substats', 'hRei', this)"></div>
-                </div>
-                <div id="avisoEsp" class="avisoErro"></div>
+        <div class="combat-box" style="padding: 15px 5px;">
+            <label style="font-size:10px; display:block; margin-bottom:10px;">DESLOCAMENTO</label>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <button class="btn btn-outline" style="padding: 2px 8px; font-size: 18px;" onclick="adjustSpeed(-1.5)">-</button>
+                <input type="text" id="combat-speed" style="text-align: center; font-size: 20px; width: 80px; padding: 0; background: transparent; border: none; font-family: 'Cinzel', serif;" onchange="formatSpeedInput(this.value)">
+                <button class="btn btn-outline" style="padding: 2px 8px; font-size: 18px;" onclick="adjustSpeed(1.5)">+</button>
             </div>
         </div>
+      </div>
 
-        <div class="box">
-            <div class="box-title" style="color: var(--danger);">Akuma no Mi</div>
-            <div class="input-group"><label>Nome / Fruta Consumida</label><input type="text" id="info-akumaNome" placeholder="🔒" oninput="updateField('info', 'akumaNome', this.value)"></div>
-            <div style="margin-bottom: 10px;">
-                <label style="font-size: 10px;">Pontos da Akuma</label>
-                <input type="text" id="stat-ami" placeholder="0" oninput="formatAndSave('stats', 'ami', this)" style="font-size: 16px; font-weight: bold; font-family: 'Cinzel', serif; text-align: right;">
-                <span id="total-ami" class="attr-total" style="display:block; text-align:right;">Total: 0</span>
-            </div>
-            <div id="box-amiSub" style="display:none; padding-top:10px; border-top: 1px dashed #444;">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div><label style="font-size: 10px;">Alcance</label><input type="text" id="sub-amiAlc" placeholder="0" oninput="formatAndSave('substats', 'amiAlc', this)"></div>
-                    <div><label style="font-size: 10px;">Durabilidade</label><input type="text" id="sub-amiDur" placeholder="0" oninput="formatAndSave('substats', 'amiDur', this)"></div>
-                    <div><label style="font-size: 10px;">Potência</label><input type="text" id="sub-amiPot" placeholder="0" oninput="formatAndSave('substats', 'amiPot', this)"></div>
-                    <div><label style="font-size: 10px;">Velocidade (Fruta)</label><input type="text" id="sub-amiVel" placeholder="0" oninput="formatAndSave('substats', 'amiVel', this)"></div>
-                </div>
-                <div id="avisoAmi" class="avisoErro"></div>
-            </div>
+      <div class="box health-box">
+        <div class="box-title" style="display:flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #444; padding-bottom: 8px; margin-bottom: 10px;">
+            <span style="color: #fff;">PONTOS DE VIDA</span>
+            <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="longRest()" title="Recupera PV, metade dos Dados de Vida, Magias e remove falhas na morte.">🌙 Descanso Longo</button>
+        </div>
+        <div class="hp-row">
+          <div class="hp-box">
+            <label style="font-size:10px; display:block;">PV MÁXIMOS</label>
+            <div class="hp-input-group"><input type="number" id="combat-maxHp" oninput="updateField('combat', 'maxHp', this.value)"><button class="btn btn-outline" style="padding:2px 8px;" onclick="mathHP('maxHp')" title="Somar ou Subtrair">+</button></div>
+          </div>
+          <div class="hp-box">
+            <label style="font-size:10px; display:block;">PV ATUAIS</label>
+            <div class="hp-input-group"><input type="number" id="combat-currentHp" oninput="updateField('combat', 'currentHp', this.value)"><button class="btn btn-outline" style="padding:2px 8px;" onclick="mathHP('currentHp')" title="Somar ou Subtrair">+</button></div>
+          </div>
         </div>
         
-        <div class="box">
-            <div class="box-title">História e Personalidade</div>
-            <div class="input-group"><label>Personalidade</label><textarea id="info-personalidade" oninput="updateField('info', 'personalidade', this.value)"></textarea></div>
-            <div class="input-group"><label>História</label><textarea id="info-historia" style="min-height: 120px;" oninput="updateField('info', 'historia', this.value)"></textarea></div>
-            <div class="input-group"><label>Aparência</label><textarea id="info-aparencia" oninput="updateField('info', 'aparencia', this.value)"></textarea></div>
+        <div class="hp-box" style="border-bottom: none; padding-bottom: 0;">
+          <label style="font-size:10px; display:block; color: var(--info);">PV TEMPORÁRIOS</label>
+          <div class="hp-input-group"><input type="number" id="combat-tempHp" oninput="updateField('combat', 'tempHp', this.value)" style="color: var(--info);"><button class="btn btn-outline" style="padding:2px 8px; color: var(--info); border-color: var(--info);" onclick="mathHP('tempHp')" title="Somar ou Subtrair">+</button></div>
         </div>
+
+        <div class="hp-row" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #444;">
+          <div class="hp-box" style="border-bottom: none; border-right: 1px solid #444; padding-right: 15px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; font-family: 'Segoe UI', sans-serif;"><span style="font-size: 11px; color: #aaa;">Total</span>
+              <input type="text" id="combat-hitDiceTotal" oninput="updateField('combat', 'hitDiceTotal', this.value)" style="width: 60px; text-align: center; border: none; border-bottom: 1px solid #666; background: transparent; color: white; padding: 2px;"></div>
+              
+              <input type="text" id="combat-hitDiceCurrent" oninput="updateField('combat', 'hitDiceCurrent', this.value)" style="width: 100%; height: 50px; text-align: center; font-size: 24px; font-family: 'Cinzel', serif; background: transparent; border: none; color: white;">
+              <label style="font-size: 11px;">DADO DE VIDA</label>
+          </div>
+          <div class="hp-box" style="border-bottom: none; padding-left: 15px; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+              <div style="display: flex; align-items: center; justify-content: center;"><label style="font-size: 10px; width: 60px; text-align: right; margin-right: 10px; margin-bottom: 0;">SUCESSOS</label><input type="checkbox" class="ds-checkbox" id="ds-s0" onchange="updateDeathSave('successes', 0, this.checked)"><input type="checkbox" class="ds-checkbox" id="ds-s1" onchange="updateDeathSave('successes', 1, this.checked)"><input type="checkbox" class="ds-checkbox" id="ds-s2" onchange="updateDeathSave('successes', 2, this.checked)"></div>
+              <div style="display: flex; align-items: center; justify-content: center;"><label style="font-size: 10px; width: 60px; text-align: right; margin-right: 10px; margin-bottom: 0;">FALHAS</label><input type="checkbox" class="ds-checkbox" id="ds-f0" onchange="updateDeathSave('failures', 0, this.checked)"><input type="checkbox" class="ds-checkbox" id="ds-f1" onchange="updateDeathSave('failures', 1, this.checked)"><input type="checkbox" class="ds-checkbox" id="ds-f2" onchange="updateDeathSave('failures', 2, this.checked)"></div>
+              <label style="font-size: 11px; margin-top: 5px;">SALVAGUARDA CONTRA MORTE</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-title">ATAQUES E CONJURAÇÃO</div>
+        <div style="display:grid; grid-template-columns: 2fr 1fr 2fr 2fr 30px; gap:5px; font-size:10px; font-weight:bold; margin-bottom:5px; text-align:center; color:#b3b3b3;"><span>NOME</span><span>BÔNUS</span><span>DANO/TIPO</span><span>EXTRA</span><span></span></div>
+        <div id="attacks-container" class="dynamic-list"></div>
+        <button class="btn-add" style="margin-bottom: 5px;" onclick="addArrayItem('attacks', {name: '', bonus: '', damage: '', extra: ''})">➕ Adicionar Ataque</button>
+      </div>
+      
+      <div class="box">
+        <div class="box-title">INVENTÁRIO E MOEDAS</div>
+        <div class="coin-grid">
+          <div class="coin-card bg-pl"><div class="coin-header"><div class="coin-header-title" style="color:#f1f1f1"><span id="pl-total" style="font-size: 1.3rem;">0</span> <span id="pl-name">Peças de Platina</span> <small>1 PL = 10 PO</small></div>👑</div><div class="coin-actions"><input type="number" id="pl-input" class="coin-input" min="1" placeholder="Qtd"><button class="btn btn-success" style="padding:4px 8px;" onclick="updateCoin('pl', true)">+</button><button class="btn btn-dark" style="padding:4px 8px;" onclick="updateCoin('pl', false)">-</button></div></div>
+          <div class="coin-card bg-po"><div class="coin-header"><div class="coin-header-title" style="color:var(--warning)"><span id="po-total" style="font-size: 1.3rem;">0</span> <span id="po-name">Peças de Ouro</span> <small>1 PO = 2 PE</small></div>🪙</div><div class="coin-actions"><input type="number" id="po-input" class="coin-input" min="1" placeholder="Qtd"><button class="btn btn-success" style="padding:4px 8px;" onclick="updateCoin('po', true)">+</button><button class="btn btn-dark" style="padding:4px 8px;" onclick="updateCoin('po', false)">-</button></div></div>
+          <div class="coin-card bg-pe"><div class="coin-header"><div class="coin-header-title" style="color:var(--info)"><span id="pe-total" style="font-size: 1.3rem;">0</span> <span id="pe-name">Peças de Electro</span> <small>1 PE = 5 PP</small></div>💎</div><div class="coin-actions"><input type="number" id="pe-input" class="coin-input" min="1" placeholder="Qtd"><button class="btn btn-success" style="padding:4px 8px;" onclick="updateCoin('pe', true)">+</button><button class="btn btn-dark" style="padding:4px 8px;" onclick="updateCoin('pe', false)">-</button></div></div>
+          <div class="coin-card bg-pp"><div class="coin-header"><div class="coin-header-title" style="color:#fff"><span id="pp-total" style="font-size: 1.3rem;">0</span> <span id="pp-name">Peças de Prata</span> <small>1 PP = 10 PC</small></div>🛡️</div><div class="coin-actions"><input type="number" id="pp-input" class="coin-input" min="1" placeholder="Qtd"><button class="btn btn-success" style="padding:4px 8px;" onclick="updateCoin('pp', true)">+</button><button class="btn btn-dark" style="padding:4px 8px;" onclick="updateCoin('pp', false)">-</button></div></div>
+          <div class="coin-card bg-pc"><div class="coin-header"><div class="coin-header-title" style="color:#fff"><span id="pc-total" style="font-size: 1.3rem;">0</span> <span id="pc-name">Peças de Cobre</span> <small>1 PC = 1 PC</small></div>♟️</div><div class="coin-actions"><input type="number" id="pc-input" class="coin-input" min="1" placeholder="Qtd"><button class="btn btn-success" style="padding:4px 8px;" onclick="updateCoin('pc', true)">+</button><button class="btn btn-dark" style="padding:4px 8px;" onclick="updateCoin('pc', false)">-</button></div></div>
+          <div class="coin-card bg-fl"><div class="coin-header"><div class="coin-header-title" style="color:#fff"><span id="fl-total" style="font-size: 1.3rem;">0</span> <span id="fl-name">Folhâminas</span> <small>1 FL = 10 PO</small></div>🏵️</div><div class="coin-actions"><input type="number" id="fl-input" class="coin-input" min="1" placeholder="Qtd"><button class="btn btn-success" style="padding:4px 8px;" onclick="updateCoin('fl', true)">+</button><button class="btn btn-dark" style="padding:4px 8px;" onclick="updateCoin('fl', false)">-</button></div></div>
+        </div>
+
+        <div class="info-stats" style="margin-bottom: 15px;">
+          Total: <strong id="total-po" style="color:var(--warning)">0</strong> PO <br>
+          Peso de Moedas: <strong id="weight">0</strong> kg <br>
+          <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+            <label style="color: #ccc; font-size: 0.9rem;">Outros Pesos (kg): </label>
+            <input type="number" id="extra-weight" min="0" step="0.1" style="width: 80px;" oninput="updateExtraWeight(this.value)">
+          </div>
+          Carga Total: <strong id="total-weight">0</strong> kg / <strong id="max-weight">75</strong> kg <br>
+          Status: <strong id="encumbrance-status">Normal</strong>
+          <div id="encumbrance-desc" style="font-size: 0.8rem; color: #aaa; margin-top: 5px; line-height: 1.2;"></div>
+        </div>
+
+        <div class="box-title">ARMADURAS</div>
+        <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+            <select id="armor-select" style="flex-grow: 1;">
+                <option value="" disabled selected>Escolha uma armadura padrão...</option>
+                <optgroup label="Armadura Leve">
+                    <option value="Acolchoada|4|false|11|leve">Acolchoada (4 kg)</option>
+                    <option value="Couro|5|false|11|leve">Couro (5 kg)</option>
+                    <option value="Couro Batido|6.5|false|12|leve">Couro Batido (6,5 kg)</option>
+                </optgroup>
+                <optgroup label="Armadura Média">
+                    <option value="Gibão de Peles|6|false|12|media">Gibão de Peles (6 kg)</option>
+                    <option value="Camisão de Malha|10|false|13|media">Camisão de Malha (10 kg)</option>
+                    <option value="Brunea|22.5|false|14|media">Brunea (22,5 kg)</option>
+                    <option value="Peitoral|10|false|14|media">Peitoral (10 kg)</option>
+                    <option value="Meia-Armadura|20|false|15|media">Meia-Armadura (20 kg)</option>
+                </optgroup>
+                <optgroup label="Armadura Pesada">
+                    <option value="Cota de anéis|20|false|14|pesada">Cota de anéis (20 kg)</option>
+                    <option value="Cota de malha|27.5|false|16|pesada">Cota de malha (27,5 kg)</option>
+                    <option value="Cota de talas|30|false|17|pesada">Cota de talas (30 kg)</option>
+                    <option value="Placas|32.5|false|18|pesada">Placas (32,5 kg)</option>
+                </optgroup>
+                <optgroup label="Escudo">
+                    <option value="Escudo|3|true|2|escudo">Escudo (3 kg)</option>
+                </optgroup>
+            </select>
+            <button class="btn btn-outline" style="width: auto;" onclick="addArmor()">➕ Adicionar</button>
+        </div>
+        
+        <div style="display: flex; gap: 5px; margin-bottom: 15px; font-size: 11px; align-items: center; border-bottom: 1px dashed #444; padding-bottom: 10px; flex-wrap: wrap;">
+            <input type="text" id="custom-armor-name" placeholder="Nome (Manual)" style="flex-grow: 1; padding: 4px; min-width: 100px;">
+            <input type="number" id="custom-armor-weight" placeholder="Peso(kg)" style="width: 60px; padding: 4px;" step="0.1" min="0">
+            <input type="number" id="custom-armor-ac" placeholder="CA" style="width: 45px; padding: 4px;" min="0">
+            <select id="custom-armor-type" style="width: auto; padding: 4px;">
+                <option value="leve">Leve (+Des)</option>
+                <option value="media">Média (Des max 2)</option>
+                <option value="pesada">Pesada (S/ Des)</option>
+                <option value="nenhum">Nenhum/Fixo</option>
+            </select>
+            <label style="color: #aaa; cursor: pointer; display: flex; align-items: center; margin: 0 5px;"><input type="checkbox" id="custom-armor-shield" style="margin-right: 3px; width:auto;" onchange="toggleCustomArmorShield(this.checked)"> Escudo</label>
+            <button class="btn btn-outline" style="padding: 4px 8px; font-size: 10px; width: auto;" onclick="addCustomArmor()">➕ Manual</button>
+        </div>
+        
+        <div id="armor-list-container" class="dynamic-list" style="margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px;"></div>
+
+        <div class="box-title">EQUIPAMENTOS GERAIS</div>
+        <div id="equipment-container" class="dynamic-list"></div>
+        <button class="btn-add" onclick="addArrayItem('equipmentList', {name: '', weight: '', qtd: 1})">➕ Adicionar Item</button>
+
+      </div>
     </div>
 
-    <div>
-        <div class="box">
-            <div class="box-title">Inventário, Técnicas e NPCs</div>
-            <div class="input-row">
-                <div class="input-group"><label>NPCs Comuns</label><textarea id="info-npcsC" oninput="updateField('info', 'npcsC', this.value)"></textarea></div>
-                <div class="input-group"><label>NPCs Especiais</label><textarea id="info-npcsE" placeholder="🔒" oninput="updateField('info', 'npcsE', this.value)"></textarea></div>
-            </div>
-            <div class="input-group">
-                <label>Inventário</label>
-                <textarea id="info-inventario" placeholder="* Item 1&#10;* Item 2" style="min-height: 120px;" oninput="updateField('info', 'inventario', this.value)"></textarea>
-            </div>
-            <div class="input-group">
-                <label style="display:flex; justify-content:space-between; align-items:center;">
-                    Técnicas
-                    <button type="button" class="btn btn-outline btn-success" style="font-size: 10px; padding: 2px 6px;" onclick="addTecnica()">+ Adicionar Técnica</button>
-                </label>
-                <div id="tecnicas-container"></div>
-            </div>
-        </div>
+    <div style="display: flex; flex-direction: column;">
+      <div class="box"><div class="box-title">TRAÇOS DE PERSONALIDADE</div><textarea id="text-traits" oninput="updateField('textBlocks', 'traits', this.value)"></textarea></div>
+      <div class="box"><div class="box-title">IDEAIS</div><textarea id="text-ideals" oninput="updateField('textBlocks', 'ideals', this.value)"></textarea></div>
+      <div class="box"><div class="box-title">VÍNCULOS</div><textarea id="text-bonds" oninput="updateField('textBlocks', 'bonds', this.value)"></textarea></div>
+      <div class="box"><div class="box-title">FRAQUEZAS</div><textarea id="text-flaws" oninput="updateField('textBlocks', 'flaws', this.value)"></textarea></div>
+      <div class="box">
+        <div class="box-title">CARACTERÍSTICAS & TALENTOS</div>
+        <div id="features-container" class="dynamic-list"></div>
+        <button class="btn-add" onclick="addArrayItem('featureList', {name: '', desc: ''})">➕ Adicionar Característica</button>
+      </div>
+      
+      <div class="box">
+          <div class="box-title">PROFICIÊNCIAS & IDIOMAS</div>
+          
+          <div id="prof-lang-preview" style="font-size: 13px; line-height: 1.5; color: #fff; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; margin-bottom: 10px; white-space: pre-wrap; font-family: 'Segoe UI', sans-serif;"></div>
+          
+          <div id="profs-container" class="dynamic-list"></div>
+          <button class="btn-add" style="margin-bottom: 10px;" onclick="addArrayItem('proficiencies', {cat: 'Armaduras', name: ''})">➕ Adicionar Proficiência</button>
 
-        <div class="box">
-            <div class="box-title">Resumo da Ficha Pronta</div>
-            <button class="btn btn-outline" style="color:var(--success); border-color:var(--success); margin-bottom: 15px;" onclick="copyFicha()">📋 Copiar Ficha</button>
-            <pre id="resBox"></pre>
-        </div>
+          <div id="langs-container" class="dynamic-list"></div>
+          <button class="btn-add" onclick="addArrayItem('languages', {name: ''})">➕ Adicionar Idioma</button>
+      </div>
+
     </div>
   </div>
+
+  <div id="page-2" style="display: none; flex-direction: column; gap: 20px;">
+      
+      <div class="info-card header-details" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
+          <div><label>Idade</label><input type="text" id="info-age" oninput="updateField('info', 'age', this.value)"></div>
+          <div><label>Altura</label><input type="text" id="info-height" oninput="updateField('info', 'height', this.value)"></div>
+          <div><label>Peso</label><input type="text" id="info-weight" oninput="updateField('info', 'weight', this.value)"></div>
+          <div><label>Cor dos Olhos</label><input type="text" id="info-eyes" oninput="updateField('info', 'eyes', this.value)"></div>
+          <div><label>Cor da Pele</label><input type="text" id="info-skin" oninput="updateField('info', 'skin', this.value)"></div>
+          <div><label>Cor do Cabelo</label><input type="text" id="info-hair" oninput="updateField('info', 'hair', this.value)"></div>
+      </div>
+
+      <div class="page-2-grid">
+          <div style="display: flex; flex-direction: column;">
+              <div class="box">
+                  <div class="box-title">APARÊNCIA DO PERSONAGEM</div>
+                  
+                  <div class="char-image-container">
+                      <label for="char-image-upload" style="margin: 0; padding: 0; display: block; width: 100%; height: 100%;">
+                          <img id="char-image-preview" src="" style="display: none;" />
+                          <span id="char-image-placeholder" class="char-image-placeholder">📷 Clique para carregar imagem/GIF (Retrato)</span>
+                      </label>
+                      <input type="file" id="char-image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                      <button id="char-image-remove" class="btn btn-danger" style="display: none; position: absolute; top: 5px; right: 5px; font-size: 10px; padding: 2px 5px;" onclick="removeImage()">X</button>
+                  </div>
+
+                  <textarea id="text-appearanceText" placeholder="Descreva traços físicos, cicatrizes, roupas..." style="min-height: 100px; margin-top: 10px;" oninput="updateField('textBlocks', 'appearanceText', this.value)"></textarea>
+              </div>
+
+              <div class="box" style="flex-grow: 1;">
+                  <div class="box-title">HISTÓRIA DO PERSONAGEM</div>
+                  <textarea id="text-backstory" style="height: 100%; min-height: 250px;" oninput="updateField('textBlocks', 'backstory', this.value)"></textarea>
+              </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+              
+              <div class="box">
+                  <div class="box-title" style="border-bottom: 1px dashed #444; padding-bottom: 10px; margin-bottom: 15px;">ALIADOS & ORGANIZAÇÕES</div>
+                  <div class="allies-container">
+                      <textarea id="text-allies" class="allies-textarea" placeholder="Escreva sobre seus aliados, patronos ou organização à qual você pertence..." oninput="updateField('textBlocks', 'allies', this.value)"></textarea>
+
+                      <div class="faction-container">
+                          <input type="text" id="text-factionName" placeholder="NOME" oninput="updateField('textBlocks', 'factionName', this.value)">
+                          
+                          <div class="faction-image-box">
+                              <label for="faction-image-upload">
+                                  <img id="faction-image-preview" src="" />
+                                  <span id="faction-image-placeholder" style="color: #888; font-size: 12px; text-align: center; padding: 10px;">
+                                      📷 Carregar Símbolo<br><small>(Clique aqui)</small>
+                                  </span>
+                              </label>
+                              <input type="file" id="faction-image-upload" accept="image/*" style="display: none;" onchange="handleFactionImageUpload(event)">
+                              <button id="faction-image-remove" class="btn btn-danger" style="display: none; position: absolute; top: 5px; right: 5px; font-size: 10px; padding: 2px 6px; z-index: 10; border-radius: 4px;" onclick="removeFactionImage()">X</button>
+                          </div>
+
+                          <div class="faction-footer">SÍMBOLO</div>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="box">
+                  <div class="box-title">CARACTERÍSTICAS E TALENTOS ADICIONAIS</div>
+                  <textarea id="text-additionalFeatures" style="min-height: 200px;" oninput="updateField('textBlocks', 'additionalFeatures', this.value)"></textarea>
+              </div>
+
+              <div class="box" style="flex-grow: 1;">
+                  <div class="box-title">TESOUROS</div>
+                  <textarea id="text-treasure" style="height: 100%; min-height: 150px;" placeholder="Artefatos, gemas, itens valiosos que não contam no peso, ou anotações de saque..." oninput="updateField('textBlocks', 'treasure', this.value)"></textarea>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div id="page-3" style="display: none; flex-direction: column; gap: 20px;">
+      
+      <div class="info-card header-details" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0;">
+          <div><label>Classe Conjuradora</label><input type="text" id="spell-class" oninput="updateField('spellsInfo', 'class', this.value)"></div>
+          <div>
+              <label>Atributo de Conjuração</label>
+              <select id="spell-ability" onchange="updateField('spellsInfo', 'ability', this.value); updateSpellStats();">
+                  <option value="">Selecione...</option>
+                  <option value="int">Inteligência</option>
+                  <option value="wis">Sabedoria</option>
+                  <option value="cha">Carisma</option>
+              </select>
+          </div>
+          <div><label>CD Para Evitar Magias</label><input type="text" id="spell-dc" readonly tabindex="-1" style="text-align: center; font-size: 20px; font-family: 'Cinzel', serif; color: var(--warning); border:none; background:transparent;"></div>
+          <div><label>Modificador de Ataque Mágico</label><input type="text" id="spell-atk" readonly tabindex="-1" style="text-align: center; font-size: 20px; font-family: 'Cinzel', serif; color: var(--warning); border:none; background:transparent;"></div>
+      </div>
+
+      <div class="spell-grid">
+          <div id="spell-col-1" style="display: flex; flex-direction: column; gap: 15px;"></div>
+          <div id="spell-col-2" style="display: flex; flex-direction: column; gap: 15px;"></div>
+          <div id="spell-col-3" style="display: flex; flex-direction: column; gap: 15px;"></div>
+      </div>
+
+  </div>
+
 </div>
 
 <script>
+// --- CONFIGURAÇÃO DO FIREBASE ---
 const firebaseConfig = {
-  apiKey: "AIzaSyDG9zDcphqyTfXXZBWc0-uRV74eeie_tEE",
-  authDomain: "new-seas.firebaseapp.com",
-  projectId: "new-seas",
-  storageBucket: "new-seas.firebasestorage.app",
-  messagingSenderId: "551983006255",
-  appId: "1:551983006255:web:29dae15ad04dabff7afcda"
+  apiKey: "AIzaSyDZdX1HXdh61Mnq6nxM97ONLoUZ4p24Ke4",
+  authDomain: "ficha-de-dnd.firebaseapp.com",
+  projectId: "ficha-de-dnd",
+  storageBucket: "ficha-de-dnd.firebasestorage.app",
+  messagingSenderId: "1029118209470",
+  appId: "1:1029118209470:web:4c4f80535e33bb30579def"
 };
 
 let db = null;
 let isFirebaseReady = false;
 
-// Estado de Segurança
-let isReadOnly = false;
+// MODIFICADO: ID da mesa sempre inicia vazio
+let currentMesaId = '';
+document.getElementById('mesa-id').value = currentMesaId;
+
+let unlockedChars = new Set();
 const MASTER_PASSWORD = "Ben10";
-
-// Inicializa a variável vazia para sempre abrir o código em branco
-let currentDocId = ''; 
-document.getElementById('doc-id').value = currentDocId;
-
-const baseClassesList = ["Arqueólogo", "Artista", "Atirador", "Carpinteiro", "Cientista", "Combatente", "Cozinheiro", "Ferreiro", "Inventor", "Médico", "Musicista", "Navegador"];
-const racas = { "Braços Longos":{f:.40}, "Bucaneiro":{f:.40,r:.40}, "Gigante":{f:.30,r:.30,v:-.20}, "Humano":{}, "Kuja":{}, "Kumate":{d:.40}, "Lunariano":{v:.35,r:.45}, "Meio-Gigante":{f:.25,r:.25}, "Mink":{v:.15,r:.15}, "Oni":{f:.35,r:.45}, "Pernas Longas":{v:.40}, "Povo do Céu: Birkan":{d:.20,v:.20}, "Povo do Céu: Shandia":{d:.20,v:.20}, "Povo do Céu: Skypieano":{d:.20,v:.20}, "Sereiano":{v:.40}, "Tontatta":{f:.20,v:.20}, "Três-Olhos":{v:.15,r:.15}, "Tritão":{f:.20,r:.20,v:.30}, "Wotan":{f:.25,r:.25} };
-const linhagens = { "Nenhuma":{}, "Augur":{v:.10,d:.20,req:["Humano"]}, "Barnum":{req:["Braços Longos","Pernas Longas","Kumate","Três-Olhos"]}, "Boa":{f:.15,ha:.15,req:["Kuja"]}, "Capone":{v:.10,d:.15,req:["Humano"]}, "Charlotte":{charlotte:true}, "Chinjao":{f:.15,r:.15,req:["Humano"]}, "D.":{}, "Dracule":{d:.20,ho:.10,req:["Humano"]}, "Drole":{f:.20,r:.10,v:.10,req:["Gigante","Meio-Gigante","Wotan"]}, "Família do Sol":{f:.15,r:.15,req:["Tritão","Sereiano","Wotan"]}, "Gan":{esp:.15,req:["Povo do Céu: Birkan","Povo do Céu: Shandia","Povo do Céu: Skypieano"]}, "Kong":{req:["Humano"]}, "Kozuki":{v:.10,d:.10,esp:.10,req:["Humano"]}, "Kurozumi":{v:.10,d:.20,req:["Humano"]}, "Laufey":{r:.20,f:.10,v:-.20,req:["Gigante"]}, "Mokomo":{v:.10,req:["Mink"]}, "Nefertari":{d:.15,v:.15,req:["Humano"]}, "Neptune":{v:.25,req:["Sereiano"]}, "Newgate":{f:.10,r:.20,req:["Humano","Meio-Gigante"]}, "Sakazuki":{r:.10,f:.20,req:["Humano"]}, "Silvers":{esp:.15,req:["Humano"]}, "Tenryūbito: Família Donquixote":{d:.15,ami:.15,req:["Humano"]}, "Tenryūbito: Família Figarland":{d:.15,esp:.15,req:["Humano"]} };
-
-const locais = {
-  "East Blue": ["Base da Marinha G-03", "Clockwork", "Conomi", "Vila Cocoyasi", "Vila Gosa", "Cozia", "Dawn", "Reino Goa", "Terminal Cinza", "Vila Foosha", "Gecko", "Vila Syrup", "Goat", "Ilha dos Animais Raros", "Ilha Navio de Guerra", "Ilha \"Shimotsuki\"", "Kumate", "Mirrorball", "Organ", "Polestar", "Tequila Wolf", "Yotsuba", "Shells Town"],
-  "South Blue": ["Base da Marinha G-10", "Baterilla", "Briss", "Centaurea", "Karate", "\"Reino Negro de Drum\"", "Torino"],
-  "West Blue": ["Ballywood", "Base da Marinha G-12", "God Valley", "Ilusia", "Kano", "Las Camp", "Ohara", "Thriller Bark", "Toroa"],
-  "North Blue": ["Base da Marinha G-11", "Deul", "Downs", "Flevance", "Ilha da Andorinha", "Lvneel", "Minion", "Polo Norte", "Rakesh", "Rubeck", "Spider Miles", "Whiteland"],
-  "Paraíso": ["Baltigo", "Banaro", "Base da Marinha G-02", "Base da Marinha G-08", "Boin", "Cactus", "Corrente Tarai", "Base da Marinha G-01", "Enies Lobby", "Impel Down", "Drum", "Foolshout", "Ilha Spa", "Jaya", "Skypiea", "Karakuri", "Kenzan", "Kuraigana", "Kyuka", "Little Garden", "Long Ring Long Land", "Reino Lulusia", "Mar do Triângulo Florian"],
-  "Novo Mundo": ["Applenine", "Base da Marinha G-09", "Base da Marinha G-13", "Base da Marinha G-14", "Base da Marinha G-15", "Dressrosa", "Green Bit", "Egghead", "Elbaf", "Foodvalten", "Hachinosu", "Mystoria", "Prodence", "Punk Hazard", "Raijin", "Risky Red", "Wano", "Whole Cake", "Yukiryu"],
-  "Calm Belt": ["Amazon Lily", "Base da Marinha G-04", "Base da Marinha G-05", "Base da Marinha G-06", "Base da Marinha G-07", "Impel Down", "Rusukaina", "Shitsurakujima"]
-};
-
-const allStyles = ["Nenhum", "Armadilha de Cores", "Arsenal", "Arte do Tempo", "Artista Marcial", "Atirador", "Black Cat", "Boujutsu", "Boxe", "Combate Gigante", "Combate Tontatta", "Cortes Precisos", "Electro", "Escultura de Forma", "Fencing", "Freestyle", "Fúria das Marés", "Galaxy Combat", "Hasshoken", "Impacto Estrutural", "Instinto Animal", "Jao Kun Dō", "Karatê Homem-Peixe", "Kitsunebi-ryū", "Kozuki-Nitōryū", "Kung Fu", "Melodia Impactante", "Mutōryū", "Ninjutsu", "Okama Kenpō", "Paladino", "Perna Negra", "Punchstyle", "Punho Suave", "Ranger", "Rokushiki", "Rope Action", "Seimei Kikan", "Sinfonia Ilusória", "Stinstyle", "Sumô", "Swordstyle", "Tōryū", "Yaristyle"];
-const classStyles = {"Arqueólogo":["Instinto Animal"],"Artista":["Armadilha de Cores","Escultura de Forma"],"Atirador":["Atirador"],"Carpinteiro":["Impacto Estrutural","Rope Action"],"Cientista":["Punho Suave"],"Combatente":["Freestyle"],"Cozinheiro":["Cortes Precisos","Perna Negra"],"Ferreiro":["Impacto Estrutural","Rope Action"],"Inventor":["Impacto Estrutural","Rope Action"],"Médico":["Punho Suave"],"Musicista":["Melodia Impactante","Sinfonia Ilusória"],"Navegador":["Arte do Tempo","Fúria das Marés"]};
-
-let charData = {
-  name: "",
-  password: "",
-  info: { 
-      classe: "Arqueólogo 1", classe2: "", classe3: "", classe4: "", classe5: "",
-      raca: "Humano", linhagem: "Nenhuma", selClasseDF: "d", selDF: "d", selRV: "r", selLinDF: "d", selLinRV: "r", selLin4: "d", selLinEspAmi: "esp",
-      alcunha: "", recompensa: "", altura: "", idade: "", sexo: "Masculino", sangue: "A+", nacionalidade: "", localizacao: "",
-      orgTipo: "Pirata", tripulacao: "", patente: "", salario: "",
-      estilo1: "", freestyle1: "", estilo2: "", freestyle2: "", estilo3: "", freestyle3: "", estilo4: "", freestyle4: "",
-      berries: 5000000, npcsC: "", npcsE: "", akumaNome: "",
-      personalidade: "", historia: "", aparencia: "", inventario: ""
-  },
-  tecnicasList: [],
-  stats: { f: 0, d: 0, r: 0, v: 0, esp: 0, ami: 0 },
-  substats: { refl: 0, vcorp: 0, hArm: 0, hObs: 0, hRei: 0, amiAlc: 0, amiDur: 0, amiPot: 0, amiVel: 0 }
-};
-
-function init() {
-  populateSelects();
-  // Como o currentDocId inicializa vazio agora, ele carrega a ficha limpa sempre na primeira abertura
-  runFallbackChecks(); 
-  renderTecnicas();
-  updateUI();
-  initFirebase();
-  toggleEditability();
-}
 
 function initFirebase() {
   try {
-      firebase.initializeApp(firebaseConfig); db = firebase.firestore(); isFirebaseReady = true;
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      isFirebaseReady = true;
       document.getElementById('db-status').classList.add('online');
-      if(currentDocId !== '') { loadFromCloud(); }
-  } catch(e) {}
+      
+      // Chamamos loadFromCloud para lidar com o estado inicial
+      loadFromCloud(); 
+  } catch(e) { console.error("Erro ao inicializar Firebase:", e); }
 }
 
-function changeDocId(newId) {
-  currentDocId = newId ? newId.trim() : '';
-  if(currentDocId !== '') { loadFromCloud(); }
+function changeMesaId(newId) {
+  currentMesaId = newId.trim();
+  loadFromCloud();
 }
 
 async function loadFromCloud() {
-  if (!isFirebaseReady || !db || currentDocId === '') return;
+  if (!isFirebaseReady || !db) return;
+  
+  // MODIFICADO: Se o ID da mesa estiver vazio, cria uma tela em branco limpa
+  // e interrompe a função para NÃO criar uma sala com nome vazio no Firebase
+  if (currentMesaId === '') {
+      party = [emptyCharData("Sem Nome")];
+      activeCharId = party[0].id;
+      fullUIRefresh();
+      return; 
+  }
+
   document.getElementById('db-status').classList.add('syncing');
   try {
-      const doc = await db.collection("fichas_op").doc(currentDocId).get();
-      if (doc.exists) { 
-          let data = doc.data(); 
-          isReadOnly = false; // Reseta antes de checar
-
-          if (data.password && data.password.trim() !== '') {
-              let entered = prompt("Esta ficha é protegida por senha. Digite a senha para editar (ou cancele para apenas visualizar a ficha):");
-              if (entered !== data.password && entered !== MASTER_PASSWORD) {
-                  isReadOnly = true;
-                  if(entered !== null) alert("Senha incorreta. A ficha foi aberta no Modo de Leitura.");
-              } else {
-                  alert("Acesso concedido!");
-              }
+      const doc = await db.collection("fichas").doc(currentMesaId).get();
+      if (doc.exists) {
+          let cloudData = doc.data().party;
+          if(cloudData && Array.isArray(cloudData)) {
+              party = cloudData;
+              runFallbackChecks();
+              activeCharId = party[0].id;
+              fullUIRefresh();
           }
-
-          charData = data; 
-          runFallbackChecks(); 
-          renderTecnicas(); 
-          updateUI(); 
-          toggleEditability();
-      } 
-      else { 
-          isReadOnly = false;
+      } else {
+          party = [emptyCharData("Sem Nome")];
+          activeCharId = party[0].id;
+          fullUIRefresh();
           saveData(); 
-          toggleEditability();
       }
-  } catch(e) {}
+  } catch(e) { console.error("Erro ao puxar da nuvem:", e); }
   setTimeout(() => document.getElementById('db-status').classList.remove('syncing'), 500);
+}
+// --------------------------------------------------------
+
+const DND_ATTRIBUTES = {
+  str: { name: 'FORÇA', skills: [{id: 'salva_str', name: 'Salvaguarda'}, {id: 'atletismo', name: 'Atletismo'}] },
+  dex: { name: 'DESTREZA', skills: [{id: 'salva_dex', name: 'Salvaguarda'}, {id: 'acrobacia', name: 'Acrobacia'}, {id: 'furtividade', name: 'Furtividade'}, {id: 'prestidigitacao', name: 'Prestidigitação'}] },
+  con: { name: 'CONSTITUIÇÃO', skills: [{id: 'salva_con', name: 'Salvaguarda'}] },
+  int: { name: 'INTELIGÊNCIA', skills: [{id: 'salva_int', name: 'Salvaguarda'}, {id: 'arcanismo', name: 'Arcanismo'}, {id: 'historia', name: 'História'}, {id: 'investigacao', name: 'Investigação'}, {id: 'natureza', name: 'Natureza'}, {id: 'religiao', name: 'Religião'}] },
+  wis: { name: 'SABEDORIA', skills: [{id: 'salva_wis', name: 'Salvaguarda'}, {id: 'intuicao', name: 'Intuição'}, {id: 'lidar_animais', name: 'Lidar com Animais'}, {id: 'medicina', name: 'Medicina'}, {id: 'percepcao', name: 'Percepção'}, {id: 'sobrevivencia', name: 'Sobrevivência'}] },
+  cha: { name: 'CARISMA', skills: [{id: 'salva_cha', name: 'Salvaguarda'}, {id: 'atuacao', name: 'Atuação'}, {id: 'enganacao', name: 'Enganação'}, {id: 'intimidacao', name: 'Intimidação'}, {id: 'persuasao', name: 'Persuasão'}] }
+};
+
+const emptyCharData = (name) => ({
+  id: Date.now(),
+  name: name,
+  password: "", 
+  info: { classLevel: "", background: "", playerName: "", race: "", alignment: "", xp: "", image: "", factionImage: "", inspiration: "", age: "", height: "", weight: "", eyes: "", skin: "", hair: "" },
+  stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+  skills: {}, 
+  skillBonuses: {},
+  combat: { ac: "", acBonus: "", speed: "9m", maxHp: "", currentHp: "", tempHp: "", initBonus: 0, hitDiceTotal: "", hitDiceCurrent: "", deathSaves: { successes: [false, false, false], failures: [false, false, false] } },
+  textBlocks: { traits: "", ideals: "", bonds: "", flaws: "", appearanceText: "", backstory: "", allies: "", factionName: "", additionalFeatures: "", treasure: "" },
+  attacks: [], equipmentList: [], armorList: [], featureList: [], languages: [], proficiencies: [],
+  coins: { pl: 0, po: 0, pe: 0, pp: 0, pc: 0, fl: 0 },
+  extraWeight: 0,
+  spellsInfo: { class: "", ability: "" },
+  spellSlots: { 1: { total: 0, exp: 0 }, 2: { total: 0, exp: 0 }, 3: { total: 0, exp: 0 }, 4: { total: 0, exp: 0 }, 5: { total: 0, exp: 0 }, 6: { total: 0, exp: 0 }, 7: { total: 0, exp: 0 }, 8: { total: 0, exp: 0 }, 9: { total: 0, exp: 0 } },
+  spells: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [] }
+});
+
+let party = [];
+let activeCharId = null;
+
+function runFallbackChecks() {
+  party.forEach(char => {
+      if (typeof char.password === 'undefined') char.password = "";
+      if (!char.info) char.info = {}; const defInfo = emptyCharData().info; for(let k in defInfo) if (typeof char.info[k] === 'undefined') char.info[k] = defInfo[k];
+      if (!char.combat) char.combat = {}; const defCombat = emptyCharData().combat; for(let k in defCombat) if (typeof char.combat[k] === 'undefined') char.combat[k] = defCombat[k];
+      if (!char.textBlocks) char.textBlocks = {}; const defTexts = emptyCharData().textBlocks; for(let k in defTexts) if (typeof char.textBlocks[k] === 'undefined') char.textBlocks[k] = defTexts[k];
+      if (!char.stats) char.stats = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
+      if (!char.skills) char.skills = {}; if (!char.skillBonuses) char.skillBonuses = {};
+      if (!char.coins) char.coins = { pl: 0, po: 0, pe: 0, pp: 0, pc: 0, fl: 0 };
+      if (typeof char.extraWeight === 'undefined') char.extraWeight = 0; if (!char.attacks) char.attacks = []; if (!char.equipmentList) char.equipmentList = []; if (!char.armorList) char.armorList = []; if (!char.featureList) char.featureList = [];
+      if (!char.languages) char.languages = []; if (!char.proficiencies) char.proficiencies = [];
+      if (!char.spellsInfo) char.spellsInfo = { class: "", ability: "" };
+      if (!char.spellSlots) char.spellSlots = { 1:{total:0,exp:0}, 2:{total:0,exp:0}, 3:{total:0,exp:0}, 4:{total:0,exp:0}, 5:{total:0,exp:0}, 6:{total:0,exp:0}, 7:{total:0,exp:0}, 8:{total:0,exp:0}, 9:{total:0,exp:0} };
+      if (!char.spells) char.spells = { 0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[] };
+      if (!char.combat.acBonus) char.combat.acBonus = "";
+      char.armorList.forEach(a => { if(typeof a.acBase === 'undefined') { a.acBase = a.isShield ? 2 : 10; a.acType = a.isShield ? 'escudo' : 'leve'; } });
+  });
+}
+
+function fullUIRefresh() {
+  renderTabs();
+  renderAttributesHTML();
+  updateUI();
+  renderDynamicLists();
+  renderSpellsHTML();
+  applyLockState(); 
+}
+
+function init() {
+  // MODIFICADO: Ignora qualquer dado local e sempre começa com uma ficha em branco
+  party = [emptyCharData("Sem Nome")];
+  activeCharId = party[0].id;
+  
+  fullUIRefresh();
+  initFirebase(); 
 }
 
 function saveData() {
-  if (isReadOnly) return; // Impede o salvamento se estiver bloqueado
-
-  if (isFirebaseReady && db && currentDocId !== '') {
+  try { localStorage.setItem('dnd_sheet_coins_v1', JSON.stringify(party)); } catch(e) {}
+  
+  // MODIFICADO: Impede salvamento em nuvem se o ID da mesa for vazio
+  if (isFirebaseReady && db && currentMesaId !== '') {
       document.getElementById('db-status').classList.add('syncing');
-      db.collection('fichas_op').doc(currentDocId).set(charData)
+      db.collection('fichas').doc(currentMesaId).set({ party: party })
         .then(() => { setTimeout(() => document.getElementById('db-status').classList.remove('syncing'), 300); })
         .catch(error => { document.getElementById('db-status').classList.remove('syncing'); document.getElementById('db-status').classList.remove('online'); });
   }
 }
 
-// Controla o gerenciamento de Senha pelo Botão
-function managePassword() {
-    if (currentDocId === '') {
-        alert("Digite um ID na nuvem e puxe ou crie uma ficha primeiro!");
-        return;
-    }
-    if (isReadOnly) {
-        alert("Você está no modo de leitura. Recarregue a ficha e insira a senha correta antes de tentar modificar a segurança.");
-        return;
-    }
+function getActiveChar() { return party.find(c => c.id === activeCharId); }
 
-    if (charData.password && charData.password.trim() !== "") {
-        let oldPass = prompt("Digite a senha atual para autorizar a mudança:");
-        if (oldPass === charData.password || oldPass === MASTER_PASSWORD) {
-            let newPass = prompt("Digite a nova senha (ou deixe totalmente em branco para REMOVER a proteção atual):");
-            if (newPass !== null) {
-                charData.password = newPass.trim();
-                saveData();
-                alert(charData.password === "" ? "A senha foi removida com sucesso!" : "Senha redefinida com sucesso!");
-                toggleEditability();
-            }
-        } else {
-            if (oldPass !== null) alert("Senha incorreta!");
-        }
-    } else {
-        let newPass = prompt("Defina uma senha para proteger a edição desta ficha:");
+function switchPage(pageNumber) {
+    document.getElementById('page-1').style.display = pageNumber === 1 ? 'grid' : 'none';
+    document.getElementById('page-2').style.display = pageNumber === 2 ? 'flex' : 'none';
+    document.getElementById('page-3').style.display = pageNumber === 3 ? 'flex' : 'none';
+    document.getElementById('nav-btn-1').classList.toggle('active', pageNumber === 1);
+    document.getElementById('nav-btn-2').classList.toggle('active', pageNumber === 2);
+    document.getElementById('nav-btn-3').classList.toggle('active', pageNumber === 3);
+}
+
+function renderTabs() {
+  const container = document.getElementById('tabs-container');
+  container.innerHTML = '';
+  party.forEach(char => {
+    const btn = document.createElement('button');
+    btn.className = `char-tab ${char.id === activeCharId ? 'active' : ''}`;
+    btn.innerText = char.name;
+    btn.onclick = () => { activeCharId = char.id; fullUIRefresh(); };
+    container.appendChild(btn);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'char-tab char-tab-add';
+  addBtn.innerText = '➕ Novo';
+  addBtn.onclick = () => createCharacter();
+  container.appendChild(addBtn);
+}
+
+function handlePasswordAction() {
+    const char = getActiveChar();
+    if (!char.password) {
+        let newPass = prompt("Defina uma senha para proteger esta ficha de edições acidentais:");
         if (newPass && newPass.trim() !== "") {
-            charData.password = newPass.trim();
+            char.password = newPass.trim();
+            unlockedChars.add(char.id);
             saveData();
-            alert("Senha definida com sucesso!");
-            toggleEditability();
+            applyLockState();
+            alert("Senha definida! Sua ficha está segura (feche ou recarregue a aba para trancá-la).");
+        }
+    } else if (!unlockedChars.has(char.id)) {
+        let pass = prompt("Ficha trancada. Digite a senha para editar:");
+        if (pass === char.password || pass === MASTER_PASSWORD) {
+            unlockedChars.add(char.id);
+            applyLockState();
+        } else if (pass !== null) {
+            alert("Senha Incorreta!");
         }
     }
 }
 
-// Desativa todos os campos de input/select se isReadOnly for true
-function toggleEditability() {
-    const elements = document.querySelectorAll('.container input, .container select, .container textarea, .container button');
-    elements.forEach(el => {
-        // Ignorar a trava no botão de copiar a ficha, queremos que possam copiar mesmo lendo
-        if(el.innerText && el.innerText.includes("Copiar Ficha")) {
-            el.disabled = false;
-            return;
+function changePassword() {
+    const char = getActiveChar();
+    if (!char.password) return;
+
+    let pass = prompt("Para redefinir, digite a senha ATUAL (ou a Senha Mestre):");
+    if (pass === char.password || pass === MASTER_PASSWORD) {
+        let newPass = prompt("Digite a NOVA senha (ou deixe em branco para remover a proteção):");
+        if (newPass !== null) {
+            char.password = newPass.trim();
+            saveData();
+            applyLockState();
+            alert("Sua senha foi atualizada com sucesso!");
         }
-        el.disabled = isReadOnly;
+    } else if (pass !== null) {
+        alert("Senha Incorreta!");
+    }
+}
+
+function lockCurrentChar() {
+    const char = getActiveChar();
+    unlockedChars.delete(char.id);
+    applyLockState();
+}
+
+function applyLockState() {
+    const char = getActiveChar();
+    if (!char) return;
+
+    const isLocked = char.password && !unlockedChars.has(char.id);
+    const actionContainer = document.getElementById('char-action-buttons');
+    
+    let lockHtml = "";
+    if (!char.password) {
+        lockHtml = `<button class="btn btn-outline" style="color:var(--info); border-color:var(--info); font-size:11px; padding: 4px 8px;" onclick="handlePasswordAction()">🔑 Definir Senha</button>`;
+    } else if (isLocked) {
+        lockHtml = `<button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger); font-size:11px; padding: 4px 8px;" onclick="handlePasswordAction()">🔒 Desbloquear</button>`;
+    } else {
+        lockHtml = `
+            <button class="btn btn-outline" style="color:var(--warning); border-color:var(--warning); font-size:11px; padding: 4px 8px;" onclick="changePassword()">🔑 Mudar Senha</button>
+            <button class="btn btn-outline" style="color:var(--success); border-color:var(--success); font-size:11px; padding: 4px 8px;" onclick="lockCurrentChar()">🔓 Trancar Ficha</button>`;
+    }
+    
+    actionContainer.innerHTML = lockHtml + `<button class="btn btn-danger" id="btn-delete-char" style="font-size:11px; padding: 4px 8px;" onclick="deleteCharacter()">Excluir</button>`;
+
+    const editableElements = document.querySelectorAll('.header-grid input, .header-grid select, #page-1 input, #page-1 select, #page-1 textarea, #page-1 button, #page-2 input, #page-2 select, #page-2 textarea, #page-2 button, #page-3 input, #page-3 select, #page-3 textarea, #page-3 button, #btn-delete-char');
+
+    editableElements.forEach(el => {
+        el.disabled = isLocked;
+        if (isLocked) { el.classList.add('locked-el'); } 
+        else { el.classList.remove('locked-el'); }
     });
-
-    let pwdBtn = document.getElementById('btn-senha');
-    if (pwdBtn) {
-        if (isReadOnly) {
-            pwdBtn.style.display = 'none'; // Esconde botão de senha se for leitura
-        } else {
-            pwdBtn.style.display = 'inline-block';
-            pwdBtn.innerText = (charData.password && charData.password !== "") ? "🔑 Redefinir Senha" : "🔑 Definir Senha";
-        }
-    }
 }
 
-function runFallbackChecks() {
-  if (typeof charData.password === 'undefined') charData.password = "";
-  if (!charData.info) charData.info = {};
-  if (typeof charData.info.recompensa === 'string') charData.info.recompensa = parseInt(charData.info.recompensa.replace(/\D/g, "")) || "";
-  if (typeof charData.info.berries === 'string') charData.info.berries = parseInt(charData.info.berries.replace(/\D/g, "")) || "";
-
-  const defInfo = { classe: "Arqueólogo 1", classe2: "", classe3: "", classe4: "", classe5: "", raca: "Humano", linhagem: "Nenhuma", selClasseDF: "d", selDF: "d", selRV: "r", selLinDF: "d", selLinRV: "r", selLin4: "d", selLinEspAmi: "esp", alcunha: "", recompensa: "", altura: "", idade: "", sexo: "Masculino", sangue: "A+", nacionalidade: "", localizacao: "", orgTipo: "Pirata", tripulacao: "", patente: "", salario: "", estilo1: "", freestyle1: "", estilo2: "", freestyle2: "", estilo3: "", freestyle3: "", estilo4: "", freestyle4: "", berries: 5000000, npcsC: "", npcsE: "", akumaNome: "", personalidade: "", historia: "", aparencia: "", inventario: "" };
-  for(let k in defInfo) if (typeof charData.info[k] === 'undefined') charData.info[k] = defInfo[k];
-  if (!charData.stats) charData.stats = { f: 0, d: 0, r: 0, v: 0, esp: 0, ami: 0 };
-  if (!charData.substats) charData.substats = { refl: 0, vcorp: 0, hArm: 0, hObs: 0, hRei: 0, amiAlc: 0, amiDur: 0, amiPot: 0, amiVel: 0 };
-
-  if (!charData.tecnicasList) {
-      charData.tecnicasList = [];
-      if (charData.info && typeof charData.info.tecnicas === 'string' && charData.info.tecnicas.trim() !== '') {
-          charData.tecnicasList.push({ nome: "Técnica Antiga (Migrada)", desc: charData.info.tecnicas, efeito: "" });
-      }
-  }
-}
-
-function addTecnica() {
-    charData.tecnicasList.push({nome: "", desc: "", efeito: ""});
-    saveData();
-    renderTecnicas();
-    updateUI();
-    toggleEditability();
-}
-
-function removeTecnica(idx) {
-    charData.tecnicasList.splice(idx, 1);
-    saveData();
-    renderTecnicas();
-    updateUI();
-    toggleEditability();
-}
-
-function updateTecnica(idx, field, val) {
-    charData.tecnicasList[idx][field] = val;
-    saveData();
-    updateUI();
-}
-
-function renderTecnicas() {
-    const container = document.getElementById('tecnicas-container');
+function renderAttributesHTML() {
+    const container = document.getElementById('attributes-wrapper');
     container.innerHTML = '';
-    charData.tecnicasList.forEach((t, idx) => {
-        container.innerHTML += `
-            <div style="background: rgba(0,0,0,0.3); padding: 10px; border: 1px dashed #555; border-radius: 6px; margin-bottom: 10px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
-                    <label style="color:var(--info);">Técnica ${idx + 1}</label>
-                    <button type="button" class="btn btn-outline" style="color:var(--danger); border-color:var(--danger); font-size:10px; padding:2px 6px;" onclick="removeTecnica(${idx})">Remover</button>
-                </div>
-                <input type="text" placeholder="Nome da Técnica (Ex: Golpe Rápido)" value="${t.nome}" oninput="updateTecnica(${idx}, 'nome', this.value)" style="margin-bottom:5px;">
-                <textarea placeholder="Descrição da Técnica" oninput="updateTecnica(${idx}, 'desc', this.value)" style="min-height:50px; margin-bottom:5px;">${t.desc}</textarea>
-                <input type="text" placeholder="Efeito / Buff (Ex: Perde 10% de Res)" value="${t.efeito}" oninput="updateTecnica(${idx}, 'efeito', this.value)">
-            </div>
-        `;
-    });
-}
-
-function populateSelects() {
-    const selRaca = document.getElementById('info-raca');
-    for(let r in racas) selRaca.innerHTML += `<option value="${r}">${r}</option>`;
-
-    let locationHtml = `<option value="">-- Selecione --</option>`;
-    for(let region in locais) {
-        locationHtml += `<optgroup label="${region}">`;
-        locais[region].forEach(loc => {
-            locationHtml += `<option value="${loc}">${loc}</option>`;
+    const char = getActiveChar();
+    for (const [key, attr] of Object.entries(DND_ATTRIBUTES)) {
+        let skillHtml = '';
+        attr.skills.forEach(skill => {
+            skillHtml += `<div class="skill-item">
+                <input type="checkbox" id="prof-${skill.id}" onchange="toggleSkill('${skill.id}', this.checked)">
+                <label for="prof-${skill.id}" style="flex-grow:1; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${skill.name}</label>
+                <input type="number" id="extra-skill-${skill.id}" placeholder="+0" oninput="updateSkillBonus('${skill.id}', this.value)" style="width: 28px; padding: 2px; text-align: center; font-size: 10px; background: rgba(0,0,0,0.5); border: 1px solid #444; color: white; border-radius: 3px; margin-right: 5px;" title="Bônus Adicional">
+                <span class="bonus" id="bonus-${skill.id}">+0</span>
+            </div>`;
         });
-        locationHtml += `</optgroup>`;
+        container.innerHTML += `<div class="attribute-block"><div class="attr-header">${attr.name}</div><div class="attr-inputs"><input type="number" class="attr-score" id="stat-${key}" min="1" max="30" onchange="updateStat('${key}', this.value)"><div class="attr-mod" id="mod-${key}">+0</div></div><div class="skill-list">${skillHtml}</div></div>`;
     }
-    document.getElementById('info-nacionalidade').innerHTML = locationHtml;
-    document.getElementById('info-localizacao').innerHTML = locationHtml;
+    container.innerHTML += `<div class="passive-box"><label style="font-size: 11px;">PERCEPÇÃO PASSIVA</label><span id="pass-perception">10</span></div><div class="passive-box"><label style="font-size: 11px;">INSPIRAÇÃO</label><input type="text" id="info-inspiration" value="${char.info.inspiration || ''}" oninput="this.value = this.value.replace(/\\D/g, ''); updateField('info', 'inspiration', this.value)"></div>`;
 }
 
-function updateField(category, field, value) { 
-    if (category === 'name') { charData.name = value || ""; } else { charData[category][field] = value; } 
-    saveData(); updateUI(); 
+function toggleSkill(skillId, isChecked) { const char = getActiveChar(); char.skills[skillId] = isChecked; saveData(); updateUI(); applyLockState(); }
+function updateSkillBonus(skillId, val) { const char = getActiveChar(); char.skillBonuses[skillId] = val === '' ? 0 : parseInt(val); saveData(); updateUI(); applyLockState(); }
+function calcMod(score) { let num = parseInt(score) || 10; let mod = Math.floor((num - 10) / 2); return mod >= 0 ? '+' + mod : mod; }
+function formatBonusString(val) { if (val === "" || val === "-") return val; let num = parseInt(val, 10); if (isNaN(num)) return ""; return num >= 0 ? "+" + num : num.toString(); }
+function mathHP(field) { const char = getActiveChar(); let currentVal = parseInt(char.combat[field]) || 0; let input = prompt(`Somar valor (use o sinal de menos "-" para subtrair):`, "0"); if (input !== null && input.trim() !== "") { let addVal = parseInt(input) || 0; let newVal = currentVal + addVal; if (newVal < 0) newVal = 0; char.combat[field] = newVal; document.getElementById(`combat-${field}`).value = newVal; saveData(); } }
+
+function longRest() {
+    const char = getActiveChar();
+    if(!char) return;
+    if(!confirm("Realizar Descanso Longo?\nIsso irá curar seus PVs para o máximo, zerar seus PVs Temporários, recuperar metade do seu total de Dados de Vida, recarregar seus espaços de magia e limpar suas salvaguardas contra a morte.")) return;
+
+    char.combat.currentHp = char.combat.maxHp;
+    char.combat.tempHp = 0;
+    char.combat.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+
+    let totalStr = char.combat.hitDiceTotal || "";
+    let match = totalStr.match(/\d+/);
+    if (match) {
+        let totalDice = parseInt(match[0]);
+        let recoverAmount = Math.max(1, Math.floor(totalDice / 2));
+        
+        let currentStr = char.combat.hitDiceCurrent || "0";
+        let currentMatch = currentStr.match(/\d+/);
+        let currentDice = currentMatch ? parseInt(currentMatch[0]) : 0;
+        let newCurrent = Math.min(totalDice, currentDice + recoverAmount);
+        
+        if (currentMatch) { char.combat.hitDiceCurrent = currentStr.replace(/\d+/, newCurrent); } 
+        else { let diceType = totalStr.replace(/\d+/, '').trim(); char.combat.hitDiceCurrent = newCurrent + diceType; }
+    }
+
+    for (let lvl = 1; lvl <= 9; lvl++) { char.spellSlots[lvl].exp = 0; }
+    saveData(); updateUI(); renderSpellsHTML(); applyLockState();
 }
 
-function formatAndSave(category, field, el) {
-    let cleanVal = el.value.replace(/\D/g, ""); let num = cleanVal ? parseInt(cleanVal, 10) : 0;
-    charData[category][field] = num;
-    let cursor = el.selectionStart; let oldLength = el.value.length; el.value = num ? num.toLocaleString("pt-BR") : "";
-    let newLength = el.value.length; el.setSelectionRange(cursor + (newLength - oldLength), cursor + (newLength - oldLength));
-    saveData(); updateUI();
-}
+function getSpeedNum(val) { if (!val || val === '') return 0; let num = parseFloat(String(val).replace(/,/g, '.').replace(/[^\d.-]/g, '')); return isNaN(num) ? 0 : num; }
+function formatSpeedVal(num) { let rounded = Math.round(num / 1.5) * 1.5; if (rounded < 0) rounded = 0; return String(rounded).replace('.', ',') + 'm'; }
+function adjustSpeed(amount) { let char = getActiveChar(); let current = getSpeedNum(char.combat.speed || '9m'); let newVal = formatSpeedVal(current + amount); updateField('combat', 'speed', newVal); updateUI(); }
+function formatSpeedInput(val) { let num = getSpeedNum(val); let newVal = formatSpeedVal(num); updateField('combat', 'speed', newVal); updateUI(); }
+function updateDeathSave(type, index, isChecked) { const char = getActiveChar(); char.combat.deathSaves[type][index] = isChecked; saveData(); }
 
-function formatCurrency(category, field, el) {
-    let cleanVal = el.value.replace(/\D/g, "");
-    let num = cleanVal ? parseInt(cleanVal, 10) : "";
-    charData[category][field] = num;
-    let cursor = el.selectionStart; 
-    let oldLength = el.value.length; 
-    el.value = cleanVal ? num.toLocaleString("pt-BR") : "";
-    let newLength = el.value.length; 
-    try { el.setSelectionRange(cursor + (newLength - oldLength), cursor + (newLength - oldLength)); } catch(e){}
-    saveData(); updateUI();
+function handleImageUpload(event) {
+    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+    reader.onload = function(e) {
+        if (file.type === 'image/gif') { updateImage(e.target.result); return; }
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas'); const MAX_WIDTH = 600; const MAX_HEIGHT = 1000; 
+            let width = img.width; let height = img.height;
+            if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+            canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height); updateImage(canvas.toDataURL('image/webp', 0.75));
+        }; img.src = e.target.result;
+    }; reader.readAsDataURL(file);
 }
+function updateImage(dataUrl) { try { updateField('info', 'image', dataUrl); updateUI(); } catch (err) { alert("Imagem muito grande para salvar."); } }
+function removeImage() { updateField('info', 'image', ''); updateUI(); }
 
-function strCalc(base, bonus) {
-    if(bonus === 0) return base.toLocaleString("pt-BR");
-    let total = Math.round(base * (1 + bonus)); let sinal = bonus >= 0 ? "+" : ""; let pct = (bonus * 100).toFixed(0) + "%";
-    return `${base.toLocaleString("pt-BR")}${sinal}${pct} = ${total.toLocaleString("pt-BR")}`;
+function handleFactionImageUpload(event) {
+    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+    reader.onload = function(e) {
+        if (file.type === 'image/gif') { updateFactionImage(e.target.result); return; }
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas'); const MAX_WIDTH = 600; const MAX_HEIGHT = 600; 
+            let width = img.width; let height = img.height;
+            if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+            canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height); updateFactionImage(canvas.toDataURL('image/webp', 0.75));
+        }; img.src = e.target.result;
+    }; reader.readAsDataURL(file);
+}
+function updateFactionImage(dataUrl) { try { updateField('info', 'factionImage', dataUrl); updateUI(); } catch (err) { alert("Imagem muito grande."); } }
+function removeFactionImage() { updateField('info', 'factionImage', ''); updateUI(); }
+
+function toggleCustomArmorShield(isChecked) {
+    const typeSelect = document.getElementById('custom-armor-type'); const acInput = document.getElementById('custom-armor-ac');
+    if (isChecked) { typeSelect.disabled = true; acInput.value = 2; } else { typeSelect.disabled = false; acInput.value = ''; }
 }
 
 function updateUI() {
-    document.getElementById('pc-name').value = charData.name;
-    const textFields = ['raca', 'selClasseDF', 'selDF', 'selRV', 'selLinDF', 'selLinRV', 'selLin4', 'selLinEspAmi', 'alcunha', 'altura', 'idade', 'sexo', 'sangue', 'nacionalidade', 'localizacao', 'tripulacao', 'patente', 'salario', 'npcsC', 'npcsE', 'akumaNome', 'personalidade', 'historia', 'aparencia', 'inventario'];
-    textFields.forEach(f => { let el = document.getElementById('info-'+f); if(el) el.value = charData.info[f] || ""; });
+  const char = getActiveChar(); if (!char) return;
 
-    let recEl = document.getElementById('info-recompensa');
-    if(recEl) recEl.value = charData.info.recompensa ? charData.info.recompensa.toLocaleString("pt-BR") : "";
-    
-    let berEl = document.getElementById('info-berries');
-    if(berEl) berEl.value = charData.info.berries ? charData.info.berries.toLocaleString("pt-BR") : "";
+  let classStr = char.info.classLevel || ""; let level = 1; let numbers = classStr.match(/\d+/g);
+  if (numbers) level = numbers.reduce((a, b) => a + parseInt(b), 0);
+  let profBonus = Math.max(2, Math.ceil(level / 4) + 1);
 
-    let D = charData.stats.d, F = charData.stats.f, R = charData.stats.r, V = charData.stats.v;
-    let totalBase = D + F + R + V;
+  document.getElementById('overall-level').innerText = level;
+  document.getElementById('prof-bonus').innerText = "+" + profBonus;
 
-    let avisoBase = document.getElementById('avisoBase');
-    if(totalBase > 1000) { avisoBase.style.display = "block"; avisoBase.textContent = `Atenção: Você ultrapassou o limite inicial de 1.000 pontos! Total: ${totalBase.toLocaleString("pt-BR")}`; } else { avisoBase.style.display = "none"; }
+  const fieldsInfo = ['classLevel', 'background', 'playerName', 'race', 'alignment', 'xp', 'age', 'height', 'weight', 'eyes', 'skin', 'hair'];
+  fieldsInfo.forEach(f => { let el = document.getElementById('info-'+f); if(el) el.value = char.info[f] || ''; });
+  document.getElementById('pc-name').value = char.name;
 
-    let html1 = "";
-    baseClassesList.forEach(c => html1 += `<option value="${c} 1">${c} 1</option>`);
-    let el1 = document.getElementById('info-classe');
-    if(el1.innerHTML !== html1) el1.innerHTML = html1;
-    el1.value = charData.info.classe || "Arqueólogo 1";
-    charData.info.classe = el1.value;
+  const imgPreview = document.getElementById('char-image-preview'); const imgPlaceholder = document.getElementById('char-image-placeholder'); const imgRemoveBtn = document.getElementById('char-image-remove');
+  if (char.info.image) { imgPreview.src = char.info.image; imgPreview.style.display = 'block'; imgPlaceholder.style.display = 'none'; imgRemoveBtn.style.display = 'block'; } 
+  else { imgPreview.src = ''; imgPreview.style.display = 'none'; imgPlaceholder.style.display = 'block'; imgRemoveBtn.style.display = 'none'; }
 
-    const classSlots = [
-        {id: 'classe2', req: 5000, prev: [charData.info.classe]},
-        {id: 'classe3', req: 10000, prev: [charData.info.classe, charData.info.classe2]},
-        {id: 'classe4', req: 20000, prev: [charData.info.classe, charData.info.classe2, charData.info.classe3]},
-        {id: 'classe5', req: 35000, prev: [charData.info.classe, charData.info.classe2, charData.info.classe3, charData.info.classe4]}
-    ];
+  const factionImgPreview = document.getElementById('faction-image-preview'); const factionImgPlaceholder = document.getElementById('faction-image-placeholder'); const factionImgRemoveBtn = document.getElementById('faction-image-remove');
+  if (char.info.factionImage) { factionImgPreview.src = char.info.factionImage; factionImgPreview.style.display = 'block'; factionImgPlaceholder.style.display = 'none'; factionImgRemoveBtn.style.display = 'block'; } 
+  else { factionImgPreview.src = ''; factionImgPreview.style.display = 'none'; factionImgPlaceholder.style.display = 'block'; factionImgRemoveBtn.style.display = 'none'; }
 
-    classSlots.forEach(slot => {
-        let el = document.getElementById('info-' + slot.id);
-        if (totalBase >= slot.req) {
-            el.disabled = isReadOnly ? true : false; // Respeita modo leitura
-            let counts = {};
-            baseClassesList.forEach(c => counts[c] = 1);
-            slot.prev.forEach(p => {
-                if(p) {
-                    let match = p.match(/(.+) (\d+)/);
-                    if(match) counts[match[1]] = Math.max(counts[match[1]], parseInt(match[2]) + 1);
-                }
-            });
-            let html = `<option value="">-- Selecione --</option>`;
-            baseClassesList.forEach(c => {
-                if(counts[c] <= 5) html += `<option value="${c} ${counts[c]}">${c} ${counts[c]}</option>`;
-            });
-            if(el.innerHTML !== html) el.innerHTML = html;
-            
-            let currentVal = charData.info[slot.id];
-            let optionExists = Array.from(el.options).some(o => o.value === currentVal);
-            if(optionExists && currentVal !== "") { el.value = currentVal; } else { el.value = ""; charData.info[slot.id] = ""; }
-        } else {
-            el.innerHTML = `<option value="">🔒 Requer ${slot.req.toLocaleString('pt-BR')}</option>`;
-            el.disabled = true;
-            charData.info[slot.id] = "";
-        }
-    });
+  let perceptionBonus = 0;
+  for (const [key, attr] of Object.entries(DND_ATTRIBUTES)) {
+      let score = char.stats[key] || 10; let modNum = Math.floor((score - 10) / 2);
+      let statEl = document.getElementById(`stat-${key}`); if(statEl) statEl.value = score;
+      let modEl = document.getElementById(`mod-${key}`); if(modEl) modEl.innerText = modNum >= 0 ? '+' + modNum : modNum;
+      attr.skills.forEach(skill => {
+          let isProficient = char.skills[skill.id] || false; let extraBonus = parseInt(char.skillBonuses[skill.id]) || 0; 
+          let profEl = document.getElementById(`prof-${skill.id}`); if(profEl) profEl.checked = isProficient;
+          let extraEl = document.getElementById(`extra-skill-${skill.id}`); if (extraEl) extraEl.value = extraBonus !== 0 ? extraBonus : ''; 
+          let totalBonus = modNum + (isProficient ? profBonus : 0) + extraBonus;
+          let bonusEl = document.getElementById(`bonus-${skill.id}`); if(bonusEl) bonusEl.innerText = totalBonus >= 0 ? '+' + totalBonus : totalBonus;
+          if (skill.id === 'percepcao') perceptionBonus = totalBonus;
+      });
+  }
+  let passPercEl = document.getElementById('pass-perception'); if(passPercEl) passPercEl.innerText = 10 + perceptionBonus;
+  let inspEl = document.getElementById('info-inspiration'); if(inspEl) inspEl.value = char.info.inspiration || '';
 
-    let combatenteLevel = 0;
-    [charData.info.classe, charData.info.classe2, charData.info.classe3, charData.info.classe4, charData.info.classe5].forEach(c => {
-        if(c && c.startsWith("Combatente")) {
-            let match = c.match(/Combatente (\d+)/);
-            if(match) combatenteLevel = Math.max(combatenteLevel, parseInt(match[1]));
-        }
-    });
-    
-    document.getElementById('box-selClasseDF').style.display = (combatenteLevel > 0) ? "block" : "none";
+  const fieldsCombat = ['speed', 'maxHp', 'currentHp', 'tempHp', 'hitDiceTotal', 'hitDiceCurrent'];
+  fieldsCombat.forEach(f => { let el = document.getElementById('combat-'+f); if(el) el.value = char.combat[f] || ''; });
 
-    let orgTipo = charData.info.orgTipo || "Pirata";
-    document.getElementById('info-orgTipo').value = orgTipo;
-    if(orgTipo === "Pirata") {
-        document.getElementById('box-tripulacao').style.display = "block";
-        document.getElementById('box-patente-salario').style.display = "none";
-    } else {
-        document.getElementById('box-tripulacao').style.display = "none";
-        document.getElementById('box-patente-salario').style.display = "flex";
-    }
+  for(let i=0; i<3; i++) {
+      document.getElementById(`ds-s${i}`).checked = char.combat.deathSaves.successes[i];
+      document.getElementById(`ds-f${i}`).checked = char.combat.deathSaves.failures[i];
+  }
 
-    const selLin = document.getElementById('info-linhagem');
-    let currentLin = charData.info.linhagem; selLin.innerHTML = "";
-    for(let l in linhagens) { if(!linhagens[l].req || linhagens[l].req.includes(charData.info.raca)) { selLin.innerHTML += `<option value="${l}">${l}</option>`; } }
-    if(Array.from(selLin.options).some(o => o.value === currentLin)) { selLin.value = currentLin; } else { charData.info.linhagem = "Nenhuma"; selLin.value = "Nenhuma"; currentLin = "Nenhuma"; }
+  let dexModNum = Math.floor(((parseInt(char.stats.dex) || 10) - 10) / 2);
+  let extraInit = parseInt(char.combat.initBonus) || 0;
+  document.getElementById('combat-init-dex').value = calcMod(char.stats.dex);
+  document.getElementById('combat-init-bonus').value = char.combat.initBonus || "";
+  document.getElementById('combat-initiative-total').value = formatBonusString(dexModNum + extraInit);
 
-    let rc = charData.info.raca; let ln = currentLin;
-    let isLinhagemVisible = (rc && !["Bucaneiro","Oni","Lunariano"].includes(rc));
-    document.getElementById('container-linhagem').style.display = isLinhagemVisible ? "block" : "none"; 
-    
-    document.getElementById('box-extraRaca').style.display = ["Humano","Kuja","Três-Olhos","Mink"].includes(rc) ? "flex" : "none";
-    document.getElementById('info-selDF').style.display = ["Humano","Kuja","Três-Olhos","Mink"].includes(rc) ? "block" : "none";
-    document.getElementById('info-selRV').style.display = ["Humano","Kuja"].includes(rc) ? "block" : "none";
+  document.getElementById('combat-ac').value = char.combat.ac || ''; document.getElementById('combat-ac-bonus').value = char.combat.acBonus || '';
+  let manualAc = parseInt(char.combat.ac) || 10; let bonusAc = parseInt(char.combat.acBonus) || 0;
+  let shieldBonus = 0; char.armorList.forEach(a => { if (a.equipped && a.isShield) shieldBonus += (a.acBase || 2); });
+  let armor = char.armorList.find(a => a.equipped && !a.isShield);
+  let finalAc = 0;
 
-    let showExtraLin = isLinhagemVisible && ["Barnum","Charlotte","D.","Gan","Kong","Silvers"].includes(ln);
-    document.getElementById('box-extraLin').style.display = showExtraLin ? "flex" : "none";
-    document.getElementById('info-selLinDF').style.display = ["Barnum","Charlotte","Gan"].includes(ln) ? "block" : "none";
-    document.getElementById('info-selLinRV').style.display = ["Barnum","Charlotte"].includes(ln) ? "block" : "none";
-    document.getElementById('info-selLin4').style.display = ["D.","Kong","Silvers"].includes(ln) ? "block" : "none";
-    document.getElementById('info-selLinEspAmi').style.display = ["D."].includes(ln) ? "block" : "none";
+  if (armor) {
+      let armorBase = parseInt(armor.acBase) || 10; let dexBonus = 0;
+      if (armor.acType === 'leve') dexBonus = dexModNum; else if (armor.acType === 'media') dexBonus = Math.min(dexModNum, 2); else if (armor.acType === 'pesada' || armor.acType === 'nenhum') dexBonus = 0;
+      finalAc = armorBase + dexBonus + shieldBonus + bonusAc; document.getElementById('combat-ac-total').value = finalAc;
+      document.getElementById('combat-ac').title = "Sua CA manual está sendo ignorada pela armadura vestida."; document.getElementById('combat-ac').style.opacity = 0.5;
+  } else {
+      finalAc = manualAc + shieldBonus + bonusAc; document.getElementById('combat-ac-total').value = finalAc;
+      document.getElementById('combat-ac').title = "CA Base"; document.getElementById('combat-ac').style.opacity = 1;
+  }
 
-    document.getElementById('box-estilo-mink').style.display = rc === "Mink" ? "flex" : "none";
+  const fieldsText = ['traits', 'ideals', 'bonds', 'flaws', 'appearanceText', 'backstory', 'allies', 'factionName', 'additionalFeatures', 'treasure'];
+  fieldsText.forEach(f => { let el = document.getElementById('text-'+f); if(el) el.value = char.textBlocks[f] || ''; });
 
-    let baseClass = (charData.info.classe || "Arqueólogo 1").split(" ")[0];
-    let allowedEstilo1 = classStyles[baseClass] || ["Freestyle"];
-    let elEst1 = document.getElementById('info-estilo1');
-    if (elEst1) {
-        let htmlE1 = "";
-        allowedEstilo1.forEach(e => htmlE1 += `<option value="${e}">${e}</option>`);
-        if (elEst1.innerHTML !== htmlE1) elEst1.innerHTML = htmlE1;
-        if (!allowedEstilo1.includes(charData.info.estilo1)) {
-            charData.info.estilo1 = allowedEstilo1[0];
-        }
-        elEst1.value = charData.info.estilo1;
-    }
+  document.getElementById('extra-weight').value = char.extraWeight;
 
-    [2, 3, 4].forEach(n => {
-        let elEst = document.getElementById('info-estilo'+n);
-        if (elEst) {
-            if (elEst.options.length === 0 || elEst.options[0].value !== "Nenhum") {
-                let htmlE = "";
-                allStyles.forEach(e => htmlE += `<option value="${e}">${e}</option>`);
-                elEst.innerHTML = htmlE;
-            }
-            if (!allStyles.includes(charData.info['estilo'+n])) {
-                charData.info['estilo'+n] = "Nenhum";
-            }
-            elEst.value = charData.info['estilo'+n];
-        }
-    });
+  const coins = char.coins;
+  ['pl','po','pe','pp','pc','fl'].forEach(t => document.getElementById(`${t}-total`).innerText = coins[t]);
+  let totalPO = (coins.pl * 10) + coins.po + (coins.pe / 2) + (coins.pp / 10) + (coins.pc / 100); document.getElementById('total-po').innerText = totalPO.toFixed(2);
+  let totalCoins = coins.pl + coins.po + coins.pe + coins.pp + coins.pc + coins.fl; let coinsWeightKg = (totalCoins * 10) / 1000;
+  
+  let equipWeightKg = 0; char.equipmentList.forEach(item => { let q = item.qtd !== undefined ? parseInt(item.qtd) : 1; if(isNaN(q)) q = 1; equipWeightKg += (parseFloat(item.weight) || 0) * q; });
+  let armorWeightKg = 0; char.armorList.forEach(item => { if (item.isShield || !item.equipped) armorWeightKg += item.weight; });
 
-    document.getElementById('info-estilo3').disabled = totalBase < 5000 || isReadOnly;
-    document.getElementById('info-estilo4').disabled = totalBase < 10000 || isReadOnly;
+  let totalWeightKg = coinsWeightKg + parseFloat(char.extraWeight || 0) + equipWeightKg + armorWeightKg;
+  let currentStr = parseInt(char.stats.str) || 10;
+  let encumberedLevel = currentStr * 2.5; let heavyEncumberedLevel = currentStr * 5; let maxWeight = currentStr * 7.5;
+  
+  document.getElementById('weight').innerText = coinsWeightKg.toFixed(2); document.getElementById('total-weight').innerText = totalWeightKg.toFixed(2); document.getElementById('max-weight').innerText = maxWeight.toFixed(1);
 
-    [1, 2, 3, 4].forEach(n => {
-        let elFree = document.getElementById('info-freestyle'+n);
-        if (elFree) {
-            elFree.style.display = charData.info['estilo'+n] === 'Freestyle' ? 'block' : 'none';
-            elFree.value = charData.info['freestyle'+n] || "";
-        }
-    });
+  let statusElem = document.getElementById('encumbrance-status'); let descElem = document.getElementById('encumbrance-desc');
+  if (totalWeightKg > maxWeight) { statusElem.innerText = "Imóvel (Ultrapassou max)"; statusElem.style.color = "var(--danger)"; descElem.innerText = "Deslocamento reduzido a 0m. Você não pode se mover."; } 
+  else if (totalWeightKg > heavyEncumberedLevel) { statusElem.innerText = "Sobrecarga Pesada"; statusElem.style.color = "var(--danger)"; descElem.innerText = "Deslocamento cai em 6m. Desvantagem em testes, ataques e salvaguardas de For, Des e Con."; } 
+  else if (totalWeightKg > encumberedLevel) { statusElem.innerText = "Sobrecarga"; statusElem.style.color = "var(--warning)"; descElem.innerText = "Deslocamento cai em 3m."; } 
+  else { statusElem.innerText = "Normal"; statusElem.style.color = "var(--success)"; descElem.innerText = ""; }
 
-    let reqEsp = (rc === "Kuja" || ln === "Silvers") ? 12000 : 15000;
-    let espEl = document.getElementById('stat-esp');
-    if(totalBase >= reqEsp) { 
-        espEl.disabled = isReadOnly ? true : false; 
-        espEl.placeholder = "0"; 
-        document.getElementById('box-haki').style.display = "block"; 
-    } else {
-        espEl.disabled = true; espEl.placeholder = `🔒 Requer ${reqEsp.toLocaleString("pt-BR")}`;
-        charData.stats.esp = 0; charData.substats.hArm = 0; charData.substats.hObs = 0; charData.substats.hRei = 0;
-        document.getElementById('box-haki').style.display = "none";
-    }
-
-    let amiEl = document.getElementById('stat-ami');
-    if(ln === "Silvers") {
-        amiEl.disabled = true; amiEl.placeholder = "🔒 Indisponível";
-        charData.stats.ami = 0; charData.substats.amiAlc = 0; charData.substats.amiDur = 0; charData.substats.amiPot = 0; charData.substats.amiVel = 0;
-    } else { 
-        amiEl.disabled = isReadOnly ? true : false; 
-        amiEl.placeholder = "0"; 
-    }
-
-    let bonus = {d:0, f:0, r:0, v:0, esp:0, ha:0, ho:0, hr:0, ami:0};
-
-    if(combatenteLevel > 0) { bonus[charData.info.selClasseDF] += combatenteLevel * 0.05; }
-
-    if(racas[rc]) { bonus.d += racas[rc].d || 0; bonus.f += racas[rc].f || 0; bonus.r += racas[rc].r || 0; bonus.v += racas[rc].v || 0; }
-    if(rc === "Humano") { bonus[charData.info.selDF] += 0.20; bonus[charData.info.selRV] += 0.20; } else if(rc === "Kuja") { bonus[charData.info.selDF] += 0.30; bonus[charData.info.selRV] += 0.20; } else if(rc === "Três-Olhos" || rc === "Mink") { bonus[charData.info.selDF] += 0.15; }
-
-    if(document.getElementById('container-linhagem').style.display === "block" && linhagens[ln]) {
-        if(linhagens[ln].charlotte) bonus = {d:0, f:0, r:0, v:0, esp:0, ha:0, ho:0, hr:0, ami:0};
-        bonus.d += linhagens[ln].d || 0; bonus.f += linhagens[ln].f || 0; bonus.r += linhagens[ln].r || 0; bonus.v += linhagens[ln].v || 0; bonus.esp += linhagens[ln].esp || 0; bonus.ha += linhagens[ln].ha || 0; bonus.ho += linhagens[ln].ho || 0; bonus.hr += linhagens[ln].hr || 0; bonus.ami += linhagens[ln].ami || 0;
-        
-        if(ln === "Barnum") { bonus[charData.info.selLinDF] += 0.15; bonus[charData.info.selLinRV] += 0.15; } else if(ln === "Charlotte") { bonus[charData.info.selLinDF] += 0.20; bonus[charData.info.selLinRV] += 0.20; } else if(ln === "D.") { bonus[charData.info.selLin4] += 0.15; bonus[charData.info.selLinEspAmi] += 0.15; } else if(ln === "Gan") { bonus[charData.info.selLinDF] += 0.15; } else if(ln === "Kong") { bonus[charData.info.selLin4] += 0.10; } else if(ln === "Silvers") { bonus[charData.info.selLin4] += 0.15; }
-        
-        if(ln === "Dracule") { if(totalBase >= 15000) bonus.d += 0.20; else if(totalBase >= 10000) bonus.d += 0.15; else if(totalBase >= 5000) bonus.d += 0.10; } else if(ln === "Capone") { if(totalBase >= 15000) bonus.d += 0.25; else if(totalBase >= 10000) bonus.d += 0.20; else if(totalBase >= 5000) bonus.d += 0.15; } else if(ln === "Augur") { if(totalBase >= 20000) bonus.d += 0.15; else if(totalBase >= 10000) bonus.d += 0.10; else if(totalBase >= 5000) bonus.d += 0.05; } else if(ln === "Newgate") { if(totalBase >= 10000) { bonus.f += 0.20; bonus.r += 0.20; } else if(totalBase >= 5000) { bonus.f += 0.10; bonus.r += 0.10; } } else if(ln === "Boa" || ln === "Neptune") { if(totalBase >= 10000) bonus.v += 0.20; else if(totalBase >= 5000) bonus.v += 0.10; } else if(ln === "Silvers") { if(totalBase >= 20000) { bonus.ha += 0.15; bonus.ho += 0.15; bonus.hr += 0.15; } else if(totalBase >= 10000) { bonus.ha += 0.10; bonus.ho += 0.10; bonus.hr += 0.10; } else if(totalBase >= 5000) { bonus.ha += 0.05; bonus.ho += 0.05; bonus.hr += 0.05; } }
-        
-        if(ln === "Drole" || ln === "Laufey" || ln === "Mokomo") { bonus.f += 0.10; bonus.r += 0.15; }
-    }
-
-    const statFields = ['f', 'd', 'r', 'v', 'esp', 'ami'];
-    statFields.forEach(f => { let el = document.getElementById('stat-'+f); if(el) el.value = charData.stats[f] ? charData.stats[f].toLocaleString("pt-BR") : ""; });
-
-    let totalD = Math.round(D * (1 + bonus.d)); document.getElementById('total-d').innerText = "Total: " + totalD.toLocaleString("pt-BR");
-    let totalF = Math.round(F * (1 + bonus.f)); document.getElementById('total-f').innerText = "Total: " + totalF.toLocaleString("pt-BR");
-    let totalR = Math.round(R * (1 + bonus.r)); document.getElementById('total-r').innerText = "Total: " + totalR.toLocaleString("pt-BR");
-    
-    let totalV = Math.round(V * (1 + bonus.v)); document.getElementById('total-v').innerText = "Total: " + totalV.toLocaleString("pt-BR");
-    document.getElementById('box-velocidade').style.display = totalV > 0 ? "flex" : "none";
-    
-    if(totalV === 0) { charData.substats.refl = 0; charData.substats.vcorp = 0; }
-    
-    let REF = charData.substats.refl || 0, VCORP = charData.substats.vcorp || 0;
-    let totalVelSub = REF + VCORP;
-    
-    if(totalVelSub > totalV) {
-        let diff = totalVelSub - totalV;
-        let active = document.activeElement;
-        
-        if(active && active.id === 'sub-refl') { REF -= diff; charData.substats.refl = REF; }
-        else if(active && active.id === 'sub-vcorp') { VCORP -= diff; charData.substats.vcorp = VCORP; }
-        else {
-            if(VCORP >= diff) { VCORP -= diff; charData.substats.vcorp = VCORP; }
-            else if(REF >= diff) { REF -= diff; charData.substats.refl = REF; }
-        }
-        
-        document.getElementById('avisoVel').style.display = "block"; 
-        document.getElementById('avisoVel').textContent = `Limite atingido! Máx: ${totalV.toLocaleString("pt-BR")}`;
-    } else {
-        document.getElementById('avisoVel').style.display = "none";
-    }
-    
-    document.getElementById('sub-refl').value = charData.substats.refl ? charData.substats.refl.toLocaleString("pt-BR") : "";
-    document.getElementById('sub-vcorp').value = charData.substats.vcorp ? charData.substats.vcorp.toLocaleString("pt-BR") : "";
-
-    let ESP = charData.stats.esp; let totalEsp = Math.round(ESP * (1 + bonus.esp)); document.getElementById('total-esp').innerText = "Total: " + totalEsp.toLocaleString("pt-BR");
-    
-    let HA = charData.substats.hArm || 0, HO = charData.substats.hObs || 0, HR = charData.substats.hRei || 0;
-    let totalHaki = HA + HO + HR;
-    
-    if(totalHaki > totalEsp) {
-        let diff = totalHaki - totalEsp;
-        let active = document.activeElement;
-        
-        if(active && active.id === 'sub-hArm') { HA -= diff; charData.substats.hArm = HA; }
-        else if(active && active.id === 'sub-hObs') { HO -= diff; charData.substats.hObs = HO; }
-        else if(active && active.id === 'sub-hRei') { HR -= diff; charData.substats.hRei = HR; }
-        else {
-            if(HR >= diff) { HR -= diff; charData.substats.hRei = HR; }
-            else if(HO >= diff) { HO -= diff; charData.substats.hObs = HO; }
-            else if(HA >= diff) { HA -= diff; charData.substats.hArm = HA; }
-        }
-        
-        document.getElementById('avisoEsp').style.display = "block"; 
-        document.getElementById('avisoEsp').textContent = `Limite atingido! Máx: ${totalEsp.toLocaleString("pt-BR")}`;
-    } else {
-        document.getElementById('avisoEsp').style.display = "none";
-    }
-    
-    document.getElementById('sub-hArm').value = charData.substats.hArm ? charData.substats.hArm.toLocaleString("pt-BR") : "";
-    document.getElementById('sub-hObs').value = charData.substats.hObs ? charData.substats.hObs.toLocaleString("pt-BR") : "";
-    document.getElementById('sub-hRei').value = charData.substats.hRei ? charData.substats.hRei.toLocaleString("pt-BR") : "";
-
-    let AMI = charData.stats.ami; let totalAmi = Math.round(AMI * (1 + bonus.ami)); document.getElementById('total-ami').innerText = "Total: " + totalAmi.toLocaleString("pt-BR");
-    document.getElementById('box-amiSub').style.display = AMI > 0 ? "block" : "none";
-    
-    if(AMI === 0) { charData.substats.amiAlc = 0; charData.substats.amiDur = 0; charData.substats.amiPot = 0; charData.substats.amiVel = 0; }
-    
-    let aAlc = charData.substats.amiAlc || 0, aDur = charData.substats.amiDur || 0, aPot = charData.substats.amiPot || 0, aVel = charData.substats.amiVel || 0;
-    let totalAmiSub = aAlc + aDur + aPot + aVel;
-    
-    if(totalAmiSub > totalAmi) {
-        let diff = totalAmiSub - totalAmi;
-        let active = document.activeElement;
-        
-        if(active && active.id === 'sub-amiAlc') { aAlc -= diff; charData.substats.amiAlc = aAlc; }
-        else if(active && active.id === 'sub-amiDur') { aDur -= diff; charData.substats.amiDur = aDur; }
-        else if(active && active.id === 'sub-amiPot') { aPot -= diff; charData.substats.amiPot = aPot; }
-        else if(active && active.id === 'sub-amiVel') { aVel -= diff; charData.substats.amiVel = aVel; }
-        else {
-            if(aVel >= diff) { aVel -= diff; charData.substats.amiVel = aVel; }
-            else if(aPot >= diff) { aPot -= diff; charData.substats.amiPot = aPot; }
-            else if(aDur >= diff) { aDur -= diff; charData.substats.amiDur = aDur; }
-            else if(aAlc >= diff) { aAlc -= diff; charData.substats.amiAlc = aAlc; }
-        }
-        
-        document.getElementById('avisoAmi').style.display = "block"; 
-        document.getElementById('avisoAmi').textContent = `Limite atingido! Máx: ${totalAmi.toLocaleString("pt-BR")}`;
-    } else {
-        document.getElementById('avisoAmi').style.display = "none";
-    }
-    
-    document.getElementById('sub-amiAlc').value = charData.substats.amiAlc ? charData.substats.amiAlc.toLocaleString("pt-BR") : "";
-    document.getElementById('sub-amiDur').value = charData.substats.amiDur ? charData.substats.amiDur.toLocaleString("pt-BR") : "";
-    document.getElementById('sub-amiPot').value = charData.substats.amiPot ? charData.substats.amiPot.toLocaleString("pt-BR") : "";
-    document.getElementById('sub-amiVel').value = charData.substats.amiVel ? charData.substats.amiVel.toLocaleString("pt-BR") : "";
-
-    let inWater = (rc === "Sereiano" || rc === "Tritão" || ln === "Neptune");
-    let totalHP = 10000 + Math.round(R * (1 + bonus.r));
-
-    let i = charData.info;
-
-    let histPersOut = "";
-    if(i.personalidade && i.personalidade.trim() !== "") {
-        histPersOut += `\n  : ᓩ _𝐏ᴇʀsᴏɴᴀʟɪᴅᴀᴅᴇ:_\n> ${i.personalidade}\n`;
-    }
-    if(i.historia && i.historia.trim() !== "") {
-        histPersOut += `\n  : ᓩ _𝐇ɪsᴛᴏ́ʀɪᴀ:_\n> ${i.historia}\n`;
-    }
-
-    let attrOut = "";
-    if (D > 0) attrOut += `↠ *𝙳𝚎𝚜𝚝𝚛𝚎𝚣𝚊:* ${strCalc(D, bonus.d)}\n\n`;
-    if (F > 0) attrOut += `↠ *𝙵𝚘𝚛𝚌̧𝚊:* ${strCalc(F, bonus.f)}\n\n`;
-    if (R > 0) {
-        attrOut += `↠ *𝚁𝚎𝚜𝚒𝚜𝚝𝚎̂𝚗𝚌𝚒𝚊:* ${strCalc(R, bonus.r)}\n> 𝙴𝚜𝚝𝚊𝚖𝚒𝚗𝚊: ${(Math.round(R * (1 + bonus.r)) * 2).toLocaleString("pt-BR")}\n\n`;
-    }
-    if (V > 0) {
-        attrOut += `↠ *𝚅𝚎𝚕𝚘𝚌𝚒𝚍𝚊𝚍𝚎:* ${strCalc(V, bonus.v) + (inWater ? " (dentro da água)" : "")}\n`;
-        if (REF > 0) attrOut += `> _𝚁𝚎𝚏𝚕𝚎𝚡𝚘:_ ${REF.toLocaleString("pt-BR")}\n`;
-        if (VCORP > 0) attrOut += `> _𝚅𝚎𝚕𝚘𝚌𝚒𝚍𝚊𝚍𝚎 𝙲𝚘𝚛𝚙𝚘𝚛𝚊𝚕:_ ${VCORP.toLocaleString("pt-BR")}\n`;
-        attrOut += `\n`;
-    }
-    
-    if (totalBase >= reqEsp && ESP > 0) {
-        attrOut += `↠ *𝙴𝚜𝚙𝚒́𝚛𝚒𝚝𝚘:* ${strCalc(ESP, bonus.esp)}\n`;
-        if (HA > 0) attrOut += `> _𝙷𝚊𝚔𝚒 𝚍𝚘 𝙰𝚛𝚖𝚊𝚖𝚎𝚗𝚝𝚘:_ ${strCalc(HA, bonus.ha)}\n`;
-        if (HO > 0) attrOut += `> _𝙷𝚊𝚔𝚒 𝚍𝚊 𝙾𝚋𝚜𝚎𝚛𝚟𝚊𝚌̧𝚊̃𝚘:_ ${strCalc(HO, bonus.ho)}\n`;
-        if (HR > 0) attrOut += `> _𝙷𝚊𝚔𝚒 𝚍𝚘 𝚁𝚎𝚒:_ ${strCalc(HR, bonus.hr)}\n`;
-        attrOut += `\n`;
-    }
-    
-    if (AMI > 0) {
-        attrOut += `↠ *𝙰𝚔𝚞𝚖𝚊 𝚗𝚘 𝙼𝚒:* ${strCalc(AMI, bonus.ami)}\n`;
-        if (aAlc > 0) attrOut += `> _𝙰𝚕𝚌𝚊𝚗𝚌𝚎:_ ${aAlc.toLocaleString("pt-BR")}\n`;
-        if (aDur > 0) attrOut += `> _𝙳𝚞𝚛𝚊𝚋𝚒𝚕𝚒𝚍𝚊𝚍𝚎:_ ${aDur.toLocaleString("pt-BR")}\n`;
-        if (aPot > 0) attrOut += `> _𝙿𝚘𝚝𝚎̂𝚗𝚌𝚒𝚊:_ ${aPot.toLocaleString("pt-BR")}\n`;
-        if (aVel > 0) attrOut += `> _𝚅𝚎𝚕𝚘𝚌𝚒𝚍𝚊𝚍𝚎:_ ${aVel.toLocaleString("pt-BR")}\n`;
-        attrOut += `\n`;
-    }
-
-    let formatNpc = (text, defaultText) => {
-        if (!text || text.trim() === "") return `> ${defaultText}`;
-        return text.split('\n').map(l => {
-            let trimL = l.trim();
-            if (trimL === "") return "";
-            return '> ' + trimL.replace(/^>\s*/, '');
-        }).join('\n');
-    };
-    let outNpcsC = formatNpc(i.npcsC, "");
-    let outNpcsE = formatNpc(i.npcsE, "🔒");
-
-    let tecnicasOut = "";
-    if (charData.tecnicasList && charData.tecnicasList.length > 0) {
-        tecnicasOut += "▬▬▬▬  [ 𝐓ᴇ́ᴄɴɪᴄᴀs ]  ▬▬▬▬\n\n";
-        
-        let tecnicasOrdenadas = [...charData.tecnicasList].sort((a, b) => {
-            let nA = (a.nome || "").trim().toLowerCase();
-            let nB = (b.nome || "").trim().toLowerCase();
-            return nA.localeCompare(nB);
-        });
-
-        tecnicasOrdenadas.forEach(t => {
-            if(t.nome || t.desc || t.efeito) {
-                if (t.nome) tecnicasOut += `* ${t.nome}\n`;
-                if (t.desc) {
-                    t.desc.split('\n').forEach(line => {
-                        let trimLine = line.trim();
-                        if(trimLine !== "") tecnicasOut += `> ${trimLine.replace(/^>\s*/, '')}\n`;
-                    });
-                }
-                if (t.efeito) {
-                    t.efeito.split('\n').forEach((line, idx) => {
-                        let trimLine = line.trim();
-                        if(trimLine !== "") {
-                            if (idx === 0) tecnicasOut += `> Efeito: ${trimLine.replace(/^>\s*/, '')}\n`;
-                            else tecnicasOut += `> ${trimLine.replace(/^>\s*/, '')}\n`;
-                        }
-                    });
-                }
-                tecnicasOut += `\n`;
-            }
-        });
-        tecnicasOut += `«▬▬▬▬▬▬  [ 𝙽𝚎𝚠 𝚂𝚎𝚊𝚜 𝙾𝙿 𝚁𝙿𝙶 ]  ▬▬▬▬▬▬»`;
-    } else {
-        tecnicasOut += `«▬▬▬▬▬▬  [ 𝙽𝚎𝚠 𝚂𝚎𝚊𝚜 𝙾𝙿 𝚁𝙿𝙶 ]  ▬▬▬▬▬▬»`;
-    }
-
-    let orgOut = "";
-    if(i.orgTipo === "Pirata") {
-        if(i.tripulacao && i.tripulacao.trim() !== "") {
-            orgOut = `  : ᓩ _𝐎ʀɢᴀɴɪᴢᴀᴄ̧ᴀ̃ᴏ:_\n* Pirata: ${i.tripulacao}\n`;
-        } else {
-            orgOut = `  : ᓩ _𝐎ʀɢᴀɴɪᴢᴀᴄ̧ᴀ̃ᴏ:_\n* Pirata\n`;
-        }
-    } else {
-        orgOut = `  : ᓩ _𝐎ʀɢᴀɴɪᴢᴀᴄ̧ᴀ̃ᴏ | 𝐏ᴀᴛᴇɴᴛᴇ | 𝐒ᴀʟᴀ́ʀɪᴏ:_\n* ${i.orgTipo}\n* ${i.patente || ''}\n* ${i.salario || ''}\n`;
-    }
-
-    let outRecompensa = i.recompensa ? `฿${i.recompensa.toLocaleString("pt-BR")}` : '🔒';
-    let outBerries = i.berries ? `฿${i.berries.toLocaleString("pt-BR")}` : '฿0';
-
-    let estilosText = "";
-    if(rc === "Mink") estilosText += "* Electro\n";
-    
-    let formatStyle = (n) => {
-        let st = i['estilo'+n];
-        if (!st || st === "Nenhum") return null;
-        if (st === "Freestyle") return `Freestyle: ${i['freestyle'+n] || 'Nome'}`;
-        return st;
-    };
-
-    let e1 = formatStyle(1);
-    if (e1) estilosText += `* ${e1}\n`;
-    
-    let e2 = formatStyle(2);
-    if (e2) estilosText += `* ${e2}\n`;
-
-    if (totalBase >= 5000) {
-        let e3 = formatStyle(3);
-        if (e3) estilosText += `* ${e3}\n`;
-        else estilosText += `* (Vazio)\n`;
-    } else {
-        estilosText += `* 🔒 (Libera com 5.000)\n`;
-    }
-
-    if (totalBase >= 10000) {
-        let e4 = formatStyle(4);
-        if (e4) estilosText += `* ${e4}\n`;
-        else estilosText += `* (Vazio)\n`;
-    } else {
-        estilosText += `* 🔒 (Libera com 10.000)\n`;
-    }
-
-    let out = `‎  ‎ ‎  
-              *Nᴇᴡ sᴇᴀs*
-— ロールプレイングゲーム - 𝚁𝙿𝙶 [𝙾𝙽𝙴 𝙿𝙸𝙴𝙲𝙴]
-     — 新しい海 - 𝙽𝚎𝚠 𝚂𝚎𝚊𝚜 ~*ɴꜱ*~
-                          ᖴIᑕᕼᗩ
-Iີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີີ່້ິູຸູິິ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊໊ີ້ີ້ີ້ີ້ີ້ິ້ິີີີີີີ່່່່່່້້້່ີ໌ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້ິ້໌໌໌ີ້ຼຼຼຼຼຼຼຼຼຼຼຼ໋໋໋໋໋໋໋໊໊໊໊໊
-  : ᓩ _𝐍ᴏᴍᴇ:_
-> ${charData.name}
-
-  : ᓩ _𝐀ʟᴄᴜɴʜᴀ:_
-> ${i.alcunha || '🔒'}
-
-  : ᓩ _𝐑ᴇᴄᴏᴍᴘᴇɴsᴀ:_
-> ${outRecompensa}
-
-  : ᓩ _𝐀ʟᴛᴜʀᴀ:_
-> ${i.altura}
-
-  : ᓩ _𝐈ᴅᴀᴅᴇ:_
-> ${i.idade || '(Mínimo: 15)'}
-
-  : ᓩ _𝐑ᴀᴄ̧ᴀ | 𝐋ɪɴʜᴀɢᴇᴍ:_
-> ${i.raca} | ${i.linhagem}
-
-  : ᓩ _𝐒ᴇxᴏ:_
-> ${i.sexo}
-
-  : ᓩ _𝐒ᴀɴɢᴜᴇ:_
-> ${i.sangue}
-${histPersOut}
-  : ᓩ _𝐀ᴘᴀʀᴇ̂ɴᴄɪᴀ:_
-> ${i.aparencia}
-
-  : ᓩ _𝐍ᴀᴄɪᴏɴᴀʟɪᴅᴀᴅᴇ:_
-> ${i.nacionalidade}
-
-  : ᓩ _𝐋ᴏᴄᴀʟɪᴢᴀᴄ̧ᴀ̃ᴏ ᴀᴛᴜᴀʟ:_
-> ${i.localizacao || '(Local presente no mapa do RPG)'}
-
-▬▬▬▬▬▬▬▬▬▬▬▬
-
-  : ᓩ _Cʟᴀssᴇ(s):_
-1. *${i.classe || '🔒'}*
-2. *${i.classe2 || '5.000'}*
-3. *${i.classe3 || '10.000'}*
-4. *${i.classe4 || '20.000'}*
-5. *${i.classe5 || '35.000'}*
-
-${orgOut}
-  : ᓩ _𝐄sᴛɪʟᴏs ᴅᴇ ʟᴜᴛᴀ:_
-${estilosText.trim()}
-
- : ᓩ _𝐁ᴇʀʀɪᴇs:_
-> ${outBerries}
-
-  : ᓩ _𝐍𝐏𝐂s ᴄᴏᴍᴜɴꜱ:_
-${outNpcsC}
-
-  : ᓩ _𝐍𝐏𝐂s ᴇꜱᴘᴇᴄɪᴀɪꜱ:_
-${outNpcsE}
-
-> _𝐈ɴᴠᴇɴᴛᴀ́ʀɪᴏ:_
-${i.inventario}
-
-  : ᓩ _𝐀ᴋᴜᴍᴀ ɴᴏ ᴍɪ:_
-> ${i.akumaNome || '🔒'}
-
-▬▬▬▬  [ 𝐒ᴛᴀᴛᴜs ]  ▬▬▬▬
-HP: ${totalHP.toLocaleString("pt-BR")}
-
-↠  *𝐀ᴛʀɪʙᴜᴛᴏs*
-* ${totalBase.toLocaleString("pt-BR")}
-
-${attrOut}${tecnicasOut}`;
-
-    document.getElementById('resBox').textContent = out.trim();
+  document.getElementById('spell-class').value = char.spellsInfo.class || ''; document.getElementById('spell-ability').value = char.spellsInfo.ability || ''; updateSpellStats();
 }
 
-function copyFicha() {
-    let text = document.getElementById('resBox').textContent;
-    let tempArea = document.createElement("textarea");
-    tempArea.value = text;
-    document.body.appendChild(tempArea);
-    tempArea.select();
-    document.execCommand("copy");
-    document.body.removeChild(tempArea);
-    alert("Ficha copiada para a área de transferência!");
+function updateSpellStats() {
+    const char = getActiveChar(); if (!char) return;
+    let attr = char.spellsInfo.ability; let classStr = char.info.classLevel || ""; let level = 1; let numbers = classStr.match(/\d+/g);
+    if (numbers) level = numbers.reduce((a, b) => a + parseInt(b), 0); let profBonus = Math.max(2, Math.ceil(level / 4) + 1);
+    let dc = 8 + profBonus; let atk = profBonus;
+    if (attr && char.stats[attr]) { let mod = Math.floor((char.stats[attr] - 10) / 2); dc += mod; atk += mod; }
+    document.getElementById('spell-dc').value = attr ? dc : ''; document.getElementById('spell-atk').value = attr ? (atk >= 0 ? '+'+atk : atk) : '';
+}
+
+function updateSpellSlot(lvl, field, val) { getActiveChar().spellSlots[lvl][field] = parseInt(val) || 0; saveData(); }
+function addSpell(lvl) { getActiveChar().spells[lvl].push({ name: '', prep: false }); saveData(); fullUIRefresh(); }
+function updateSpell(lvl, idx, field, val) { getActiveChar().spells[lvl][idx][field] = val; saveData(); }
+function removeSpell(lvl, idx) { getActiveChar().spells[lvl].splice(idx, 1); saveData(); fullUIRefresh(); }
+
+function renderSpellsHTML() {
+    const char = getActiveChar(); if(!char) return;
+    const cols = [[0, 1, 2], [3, 4, 5], [6, 7, 8, 9]];
+    cols.forEach((levels, colIdx) => {
+        let html = '';
+        levels.forEach(lvl => {
+            html += `<div class="box" style="padding: 10px;"><div class="box-title" style="display:flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #444; padding-bottom: 8px; margin-bottom: 10px;"><span style="background: var(--warning); color: black; padding: 2px 10px; border-radius: 4px; font-size: 16px; font-weight: bold;">${lvl}</span><span style="color: #fff;">${lvl === 0 ? 'TRUQUES' : 'NÍVEL ' + lvl}</span></div>`;
+            if (lvl > 0) { html += `<div style="display:flex; gap:10px; margin-bottom:15px; font-size:10px;"><div style="flex:1"><label>Total de Espaços</label><input type="number" min="0" value="${char.spellSlots[lvl].total}" oninput="updateSpellSlot(${lvl}, 'total', this.value)" style="text-align: center;"></div><div style="flex:1"><label>Espaços Utilizados</label><input type="number" min="0" value="${char.spellSlots[lvl].exp}" oninput="updateSpellSlot(${lvl}, 'exp', this.value)" style="text-align: center;"></div></div>`; }
+            html += `<div class="dynamic-list">`;
+            if (lvl > 0 && char.spells[lvl].length > 0) { html += `<div style="font-size: 9px; color: #888; margin-bottom: 5px; display: flex;"><span style="width: 20px; text-align: center;">PREP</span><span style="margin-left: 5px;">NOME DA MAGIA</span></div>`; }
+            char.spells[lvl].forEach((spell, idx) => { html += `<div class="dynamic-row" style="align-items: center; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 4px;">${lvl > 0 ? `<input type="checkbox" title="Preparada" class="ds-checkbox" style="margin: 0 5px;" ${spell.prep ? 'checked' : ''} onchange="updateSpell(${lvl}, ${idx}, 'prep', this.checked)">` : ''}<input type="text" placeholder="Nome da Magia" style="flex: 1; border: none; border-bottom: 1px solid #555; border-radius: 0; padding: 2px 5px; background: transparent;" value="${spell.name.replace(/"/g, '&quot;')}" oninput="updateSpell(${lvl}, ${idx}, 'name', this.value)"><button class="btn-remove" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;" onclick="removeSpell(${lvl}, ${idx})">X</button></div>`; });
+            html += `</div><button class="btn-add" style="margin-top: 10px; border: 1px dashed #555;" onclick="addSpell(${lvl})">➕ Add Magia</button></div>`;
+        });
+        document.getElementById(`spell-col-${colIdx + 1}`).innerHTML = html;
+    });
+}
+
+function addArmor() { const select = document.getElementById('armor-select'); if (!select.value) return; const [name, weight, isShieldStr, acBase, acType] = select.value.split('|'); getActiveChar().armorList.push({ id: Date.now(), name: name, weight: parseFloat(weight), isShield: isShieldStr === 'true', equipped: false, acBase: parseInt(acBase) || 0, acType: acType || 'nenhum' }); saveData(); fullUIRefresh(); }
+function addCustomArmor() { const nameInput = document.getElementById('custom-armor-name'); const weightInput = document.getElementById('custom-armor-weight'); const shieldInput = document.getElementById('custom-armor-shield'); const typeInput = document.getElementById('custom-armor-type'); const acInput = document.getElementById('custom-armor-ac'); const name = nameInput.value.trim(); const weight = parseFloat(weightInput.value) || 0; const isShield = shieldInput.checked; const acBase = parseInt(acInput.value) || (isShield ? 2 : 10); const acType = typeInput.value; if (!name) { alert("Informe o nome da armadura!"); return; } getActiveChar().armorList.push({ id: Date.now(), name: name, weight: weight, isShield: isShield, equipped: false, acBase: acBase, acType: isShield ? 'escudo' : acType }); nameInput.value = ''; weightInput.value = ''; shieldInput.checked = false; acInput.value = ''; typeInput.disabled = false; saveData(); fullUIRefresh(); }
+function removeArmor(index) { getActiveChar().armorList.splice(index, 1); saveData(); fullUIRefresh(); }
+function toggleArmorEquip(index) { const char = getActiveChar(); const isNowEquipped = !char.armorList[index].equipped; if (!char.armorList[index].isShield && isNowEquipped) { char.armorList.forEach(item => { if (!item.isShield) item.equipped = false; }); } char.armorList[index].equipped = isNowEquipped; saveData(); fullUIRefresh(); }
+
+function formatTextList(arr) { if (arr.length === 0) return ''; if (arr.length === 1) return arr[0]; let copy = [...arr]; const last = copy.pop(); return copy.join(', ') + ' e ' + last; }
+function renderProfLangPreview() { const char = getActiveChar(); if (!char) return; let lines = []; const groupedProfs = { 'Armaduras': [], 'Armas': [], 'Ferramentas': [] }; char.proficiencies.forEach(p => { if (p.name.trim()) groupedProfs[p.cat].push(p.name.trim()); }); ['Armaduras', 'Armas', 'Ferramentas'].forEach(cat => { if (groupedProfs[cat].length > 0) { let sorted = groupedProfs[cat].sort((a,b) => a.localeCompare(b)); lines.push(`${cat}: ${formatTextList(sorted)}`); } }); let langs = char.languages.map(l => l.name.trim()).filter(l => l); if (langs.length > 0) { if (lines.length > 0) lines.push(""); let sortedLangs = langs.sort((a,b) => a.localeCompare(b)); lines.push(`Idiomas: ${formatTextList(sortedLangs)}`); } const previewEl = document.getElementById('prof-lang-preview'); if (previewEl) previewEl.innerText = lines.join('\n'); }
+
+function renderDynamicLists() {
+  const char = getActiveChar(); if (!char) return;
+  const atkContainer = document.getElementById('attacks-container'); atkContainer.innerHTML = '';
+  char.attacks.forEach((atk, index) => { atkContainer.innerHTML += `<div class="dynamic-row"><input type="text" placeholder="Arma/Magia" style="flex: 2;" value="${atk.name.replace(/"/g, '&quot;')}" oninput="updateArrayItem('attacks', ${index}, 'name', this.value)"><input type="text" placeholder="+0" style="flex: 1; text-align:center;" value="${atk.bonus.replace(/"/g, '&quot;')}" oninput="this.value = this.value.replace(/[^0-9\\-]/g, '')" onchange="this.value = formatBonusString(this.value); updateArrayItem('attacks', ${index}, 'bonus', this.value)"><input type="text" placeholder="1d8 Cort" style="flex: 2; text-align:center;" value="${atk.damage.replace(/"/g, '&quot;')}" oninput="updateArrayItem('attacks', ${index}, 'damage', this.value)"><input type="text" placeholder="Notas Extra" style="flex: 2; text-align:center;" value="${(atk.extra || '').replace(/"/g, '&quot;')}" oninput="updateArrayItem('attacks', ${index}, 'extra', this.value)"><button class="btn-remove" onclick="removeArrayItem('attacks', ${index})">X</button></div>`; });
+  const armorContainer = document.getElementById('armor-list-container'); armorContainer.innerHTML = '';
+  char.armorList.forEach((item, index) => { let acText = item.isShield ? '+' + (item.acBase || 2) + ' CA' : (item.acBase || 10) + ' CA'; armorContainer.innerHTML += `<div class="armor-item"><span><strong style="color:var(--warning)">${item.name}</strong> (${acText} | ${item.weight} kg)</span><div style="display: flex; align-items: center;"><label><input type="${item.isShield ? 'checkbox' : 'radio'}" name="${item.isShield ? 'shield_' + item.id : 'armor_group_' + char.id}" ${item.equipped ? 'checked' : ''} onclick="toggleArmorEquip(${index})"> ${item.isShield ? 'Equipar' : 'Vestir'}</label><button class="btn-remove" style="margin-left: 10px; padding: 2px 6px; font-size:10px;" onclick="removeArmor(${index})">X</button></div></div>`; });
+  const equipContainer = document.getElementById('equipment-container'); equipContainer.innerHTML = '';
+  char.equipmentList.forEach((item, index) => { let q = item.qtd !== undefined ? item.qtd : 1; equipContainer.innerHTML += `<div class="dynamic-row"><input type="number" placeholder="Qtd" min="1" style="width: 55px; text-align:center;" value="${q}" oninput="updateArrayItem('equipmentList', ${index}, 'qtd', this.value); updateUI();" title="Quantidade"><input type="text" placeholder="Nome do Item..." style="flex: 3;" value="${item.name.replace(/"/g, '&quot;')}" oninput="updateArrayItem('equipmentList', ${index}, 'name', this.value)"><input type="number" placeholder="Peso un. (kg)" step="0.1" min="0" style="flex: 1.2; text-align:center;" value="${item.weight !== undefined ? item.weight : ''}" oninput="updateArrayItem('equipmentList', ${index}, 'weight', this.value); updateUI();" title="Peso Unitário"><button class="btn-remove" onclick="removeArrayItem('equipmentList', ${index})">X</button></div>`; });
+  const featContainer = document.getElementById('features-container'); featContainer.innerHTML = '';
+  char.featureList.forEach((feat, index) => { featContainer.innerHTML += `<div class="dynamic-row" style="flex-direction: column; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; border: 1px solid #444; gap: 5px;"><div style="display: flex; width: 100%; gap: 5px;"><input type="text" placeholder="Nome da Característica" style="font-weight: bold; flex-grow: 1;" value="${feat.name.replace(/"/g, '&quot;')}" oninput="updateArrayItem('featureList', ${index}, 'name', this.value)"><button class="btn-remove" onclick="removeArrayItem('featureList', ${index})">X</button></div><textarea placeholder="Descrição..." style="min-height: 50px;" oninput="updateArrayItem('featureList', ${index}, 'desc', this.value)">${feat.desc}</textarea></div>`; });
+  const profsContainer = document.getElementById('profs-container'); profsContainer.innerHTML = '';
+  char.proficiencies.forEach((prof, index) => { profsContainer.innerHTML += `<div class="dynamic-row"><select style="width: 120px; padding: 5px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px;" onchange="updateArrayItem('proficiencies', ${index}, 'cat', this.value); renderProfLangPreview();"><option value="Armaduras" ${prof.cat === 'Armaduras' ? 'selected' : ''}>Armaduras</option><option value="Armas" ${prof.cat === 'Armas' ? 'selected' : ''}>Armas</option><option value="Ferramentas" ${prof.cat === 'Ferramentas' ? 'selected' : ''}>Ferramentas</option></select><input type="text" placeholder="Ex: Couro Batido" style="flex: 1;" value="${prof.name.replace(/"/g, '&quot;')}" oninput="updateArrayItem('proficiencies', ${index}, 'name', this.value); renderProfLangPreview();"><button class="btn-remove" onclick="removeArrayItem('proficiencies', ${index})">X</button></div>`; });
+  const langsContainer = document.getElementById('langs-container'); langsContainer.innerHTML = '';
+  char.languages.forEach((lang, index) => { langsContainer.innerHTML += `<div class="dynamic-row"><input type="text" placeholder="Ex: Dracônico" style="flex: 1;" value="${lang.name.replace(/"/g, '&quot;')}" oninput="updateArrayItem('languages', ${index}, 'name', this.value); renderProfLangPreview();"><button class="btn-remove" onclick="removeArrayItem('languages', ${index})">X</button></div>`; });
+  renderProfLangPreview();
+}
+
+function updateArrayItem(listName, index, field, value) { getActiveChar()[listName][index][field] = value; saveData(); }
+function addArrayItem(listName, defaultObj) { getActiveChar()[listName].push(defaultObj); saveData(); fullUIRefresh(); }
+function removeArrayItem(listName, index) { getActiveChar()[listName].splice(index, 1); saveData(); fullUIRefresh(); }
+function updateField(category, field, value) { const char = getActiveChar(); if (category === 'name') { char.name = value || "Sem Nome"; renderTabs(); } else { char[category][field] = value; } saveData(); }
+function updateStat(stat, value) { const char = getActiveChar(); if (value !== '') { let val = parseInt(value); if (val < 1) val = 1; if (val > 30) val = 30; char.stats[stat] = val; document.getElementById(`stat-${stat}`).value = val; } else { char.stats[stat] = ''; } saveData(); updateUI(); }
+function updateExtraWeight(value) { getActiveChar().extraWeight = parseFloat(value) || 0; saveData(); updateUI(); }
+function updateCoin(type, isCredit) { let input = document.getElementById(`${type}-input`); let amount = parseInt(input.value) || 0; if (amount <= 0) return; const char = getActiveChar(); if (isCredit) { char.coins[type] += amount; } else { char.coins[type] = Math.max(0, char.coins[type] - amount); } input.value = ''; saveData(); updateUI(); }
+
+function createCharacter(defaultName = null) { 
+    let name = defaultName || prompt("Nome do novo personagem:"); 
+    if (!name || name.trim() === '') return; 
+    const newChar = emptyCharData(name.trim()); 
+    party.push(newChar); 
+    activeCharId = newChar.id; 
+    saveData(); 
+    fullUIRefresh(); 
+}
+
+function deleteCharacter() { 
+    const char = getActiveChar();
+    if (char.password && !unlockedChars.has(char.id)) {
+        alert("Desbloqueie a ficha primeiro para poder excluí-la.");
+        return;
+    }
+    if (party.length <= 1) { alert("Você precisa ter pelo menos um personagem!"); return; } 
+    if(confirm(`Tem certeza que deseja excluir a ficha do(a) ${char.name}?`)) { 
+        party = party.filter(c => c.id !== char.id); 
+        activeCharId = party[0].id; 
+        saveData(); 
+        fullUIRefresh(); 
+    } 
+}
+
+function exportData() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(party)); const downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", "dnd_sheet_backup.json"); document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove(); }
+
+function importData(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedParty = JSON.parse(e.target.result);
+      if (Array.isArray(importedParty) && importedParty[0].id) {
+        party = importedParty; activeCharId = party[0].id; runFallbackChecks();
+        saveData(); fullUIRefresh(); alert("Backup importado com sucesso!");
+      } else { alert("Arquivo inválido."); }
+    } catch (err) { alert("Erro ao ler o arquivo."); }
+  };
+  reader.readAsText(file);
 }
 
 window.onload = init;
