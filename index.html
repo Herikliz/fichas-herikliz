@@ -169,7 +169,6 @@ textarea { box-sizing: border-box; resize: vertical; min-height: 80px; text-alig
 .faction-image-box img { display: none; width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
 .faction-footer { text-align: center; font-size: 12px; border-top: 1px solid #555; padding: 6px; color: #b3b3b3; font-family: 'Cinzel', serif; background: rgba(0,0,0,0.4); letter-spacing: 2px;}
 
-/* CSS NOVO: Efeito visual para elementos bloqueados */
 .locked-el {
     opacity: 0.5 !important;
     cursor: not-allowed !important;
@@ -192,7 +191,7 @@ textarea { box-sizing: border-box; resize: vertical; min-height: 80px; text-alig
     <div id="db-status" class="status-dot" title="Status do Banco de Dados"></div>
   </span>
   <div class="cloud-controls">
-    <input type="text" id="mesa-id" placeholder="ID da Mesa" title="Crie um nome único para o seu grupo (Ex: mesa_do_herikliz)" onchange="changeMesaId(this.value)">
+    <input type="text" id="mesa-id" placeholder="ID da Mesa" title="Digite o ID e aperte Enter para carregar" onchange="changeMesaId(this.value)">
     <button class="btn btn-outline" style="font-size: 0.7rem; padding: 4px;" onclick="loadFromCloud()" title="Baixar dados da Nuvem">⬇️ Puxar</button>
   </div>
   <div>
@@ -548,10 +547,11 @@ const firebaseConfig = {
 
 let db = null;
 let isFirebaseReady = false;
-let currentMesaId = localStorage.getItem('dnd_mesa_id') || 'minha_mesa';
+
+// MODIFICADO: ID da mesa sempre inicia vazio
+let currentMesaId = '';
 document.getElementById('mesa-id').value = currentMesaId;
 
-// NOVO: SISTEMA DE SEGURANÇA
 let unlockedChars = new Set();
 const MASTER_PASSWORD = "Ben10";
 
@@ -561,19 +561,29 @@ function initFirebase() {
       db = firebase.firestore();
       isFirebaseReady = true;
       document.getElementById('db-status').classList.add('online');
+      
+      // Chamamos loadFromCloud para lidar com o estado inicial
       loadFromCloud(); 
   } catch(e) { console.error("Erro ao inicializar Firebase:", e); }
 }
 
 function changeMesaId(newId) {
-  if(!newId || newId.trim() === '') return;
   currentMesaId = newId.trim();
-  localStorage.setItem('dnd_mesa_id', currentMesaId);
   loadFromCloud();
 }
 
 async function loadFromCloud() {
   if (!isFirebaseReady || !db) return;
+  
+  // MODIFICADO: Se o ID da mesa estiver vazio, cria uma tela em branco limpa
+  // e interrompe a função para NÃO criar uma sala com nome vazio no Firebase
+  if (currentMesaId === '') {
+      party = [emptyCharData("Sem Nome")];
+      activeCharId = party[0].id;
+      fullUIRefresh();
+      return; 
+  }
+
   document.getElementById('db-status').classList.add('syncing');
   try {
       const doc = await db.collection("fichas").doc(currentMesaId).get();
@@ -608,7 +618,7 @@ const DND_ATTRIBUTES = {
 const emptyCharData = (name) => ({
   id: Date.now(),
   name: name,
-  password: "", // NOVO: Campo de Senha
+  password: "", 
   info: { classLevel: "", background: "", playerName: "", race: "", alignment: "", xp: "", image: "", factionImage: "", inspiration: "", age: "", height: "", weight: "", eyes: "", skin: "", hair: "" },
   stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
   skills: {}, 
@@ -651,24 +661,23 @@ function fullUIRefresh() {
   updateUI();
   renderDynamicLists();
   renderSpellsHTML();
-  applyLockState(); // CRUCIAL PARA A SEGURANÇA VISUAL
+  applyLockState(); 
 }
 
 function init() {
-  const savedData = localStorage.getItem('dnd_sheet_coins_v1');
-  if (savedData) { party = JSON.parse(savedData); runFallbackChecks(); } 
-  else { party = [emptyCharData("Sem Nome")]; }
+  // MODIFICADO: Ignora qualquer dado local e sempre começa com uma ficha em branco
+  party = [emptyCharData("Sem Nome")];
+  activeCharId = party[0].id;
   
-  if (party.length === 0) createCharacter("Sem Nome");
-  else activeCharId = party[0].id;
-
   fullUIRefresh();
   initFirebase(); 
 }
 
 function saveData() {
   try { localStorage.setItem('dnd_sheet_coins_v1', JSON.stringify(party)); } catch(e) {}
-  if (isFirebaseReady && db) {
+  
+  // MODIFICADO: Impede salvamento em nuvem se o ID da mesa for vazio
+  if (isFirebaseReady && db && currentMesaId !== '') {
       document.getElementById('db-status').classList.add('syncing');
       db.collection('fichas').doc(currentMesaId).set({ party: party })
         .then(() => { setTimeout(() => document.getElementById('db-status').classList.remove('syncing'), 300); })
@@ -704,9 +713,6 @@ function renderTabs() {
   container.appendChild(addBtn);
 }
 
-// ------------------------------------------------------
-// SISTEMA DE SEGURANÇA DE INTERFACE
-// ------------------------------------------------------
 function handlePasswordAction() {
     const char = getActiveChar();
     if (!char.password) {
@@ -773,7 +779,6 @@ function applyLockState() {
     
     actionContainer.innerHTML = lockHtml + `<button class="btn btn-danger" id="btn-delete-char" style="font-size:11px; padding: 4px 8px;" onclick="deleteCharacter()">Excluir</button>`;
 
-    // Bloqueia todos os inputs para não receber cliques se estiver trancado
     const editableElements = document.querySelectorAll('.header-grid input, .header-grid select, #page-1 input, #page-1 select, #page-1 textarea, #page-1 button, #page-2 input, #page-2 select, #page-2 textarea, #page-2 button, #page-3 input, #page-3 select, #page-3 textarea, #page-3 button, #btn-delete-char');
 
     editableElements.forEach(el => {
@@ -782,8 +787,6 @@ function applyLockState() {
         else { el.classList.remove('locked-el'); }
     });
 }
-// ------------------------------------------------------
-
 
 function renderAttributesHTML() {
     const container = document.getElementById('attributes-wrapper');
@@ -806,19 +809,9 @@ function renderAttributesHTML() {
 
 function toggleSkill(skillId, isChecked) { const char = getActiveChar(); char.skills[skillId] = isChecked; saveData(); updateUI(); applyLockState(); }
 function updateSkillBonus(skillId, val) { const char = getActiveChar(); char.skillBonuses[skillId] = val === '' ? 0 : parseInt(val); saveData(); updateUI(); applyLockState(); }
-
 function calcMod(score) { let num = parseInt(score) || 10; let mod = Math.floor((num - 10) / 2); return mod >= 0 ? '+' + mod : mod; }
 function formatBonusString(val) { if (val === "" || val === "-") return val; let num = parseInt(val, 10); if (isNaN(num)) return ""; return num >= 0 ? "+" + num : num.toString(); }
-
-function mathHP(field) {
-    const char = getActiveChar(); let currentVal = parseInt(char.combat[field]) || 0;
-    let input = prompt(`Somar valor (use o sinal de menos "-" para subtrair):`, "0");
-    if (input !== null && input.trim() !== "") {
-        let addVal = parseInt(input) || 0; let newVal = currentVal + addVal;
-        if (newVal < 0) newVal = 0;
-        char.combat[field] = newVal; document.getElementById(`combat-${field}`).value = newVal; saveData();
-    }
-}
+function mathHP(field) { const char = getActiveChar(); let currentVal = parseInt(char.combat[field]) || 0; let input = prompt(`Somar valor (use o sinal de menos "-" para subtrair):`, "0"); if (input !== null && input.trim() !== "") { let addVal = parseInt(input) || 0; let newVal = currentVal + addVal; if (newVal < 0) newVal = 0; char.combat[field] = newVal; document.getElementById(`combat-${field}`).value = newVal; saveData(); } }
 
 function longRest() {
     const char = getActiveChar();
@@ -855,8 +848,7 @@ function formatSpeedInput(val) { let num = getSpeedNum(val); let newVal = format
 function updateDeathSave(type, index, isChecked) { const char = getActiveChar(); char.combat.deathSaves[type][index] = isChecked; saveData(); }
 
 function handleImageUpload(event) {
-    const file = event.target.files[0]; if (!file) return;
-    const reader = new FileReader();
+    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
     reader.onload = function(e) {
         if (file.type === 'image/gif') { updateImage(e.target.result); return; }
         const img = new Image();
@@ -865,17 +857,14 @@ function handleImageUpload(event) {
             let width = img.width; let height = img.height;
             if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
             canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height); updateImage(canvas.toDataURL('image/webp', 0.75));
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+        }; img.src = e.target.result;
+    }; reader.readAsDataURL(file);
 }
 function updateImage(dataUrl) { try { updateField('info', 'image', dataUrl); updateUI(); } catch (err) { alert("Imagem muito grande para salvar."); } }
 function removeImage() { updateField('info', 'image', ''); updateUI(); }
 
 function handleFactionImageUpload(event) {
-    const file = event.target.files[0]; if (!file) return;
-    const reader = new FileReader();
+    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
     reader.onload = function(e) {
         if (file.type === 'image/gif') { updateFactionImage(e.target.result); return; }
         const img = new Image();
@@ -884,10 +873,8 @@ function handleFactionImageUpload(event) {
             let width = img.width; let height = img.height;
             if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
             canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height); updateFactionImage(canvas.toDataURL('image/webp', 0.75));
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+        }; img.src = e.target.result;
+    }; reader.readAsDataURL(file);
 }
 function updateFactionImage(dataUrl) { try { updateField('info', 'factionImage', dataUrl); updateUI(); } catch (err) { alert("Imagem muito grande."); } }
 function removeFactionImage() { updateField('info', 'factionImage', ''); updateUI(); }
@@ -1070,7 +1057,6 @@ function createCharacter(defaultName = null) {
 
 function deleteCharacter() { 
     const char = getActiveChar();
-    // Impede deletar ficha que está trancada na tela
     if (char.password && !unlockedChars.has(char.id)) {
         alert("Desbloqueie a ficha primeiro para poder excluí-la.");
         return;
