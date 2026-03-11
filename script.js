@@ -76,7 +76,7 @@ const emptyCharData = (name) => ({
   id: Date.now(),
   name: name,
   password: "", 
-  info: { classLevel: "", background: "", playerName: "", race: "", alignment: "", xp: "", image: "", factionImage: "", inspiration: "", age: "", size: "Médio", height: "", weight: "", eyes: "", skin: "", hair: "" },
+  info: { classLevel: "", background: "", playerName: "", race: "", alignment: "", xp: "", image: "", factionImage: "", inspiration: "", age: "", size: "Médio", height: "", weight: "", eyes: "", skin: "", hair: "", type: "" },
   stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
   skills: {}, 
   skillBonuses: {},
@@ -349,7 +349,7 @@ function updateUI() {
   document.getElementById('overall-level').innerText = level;
   document.getElementById('prof-bonus').innerText = "+" + profBonus;
 
-  const fieldsInfo = ['classLevel', 'background', 'playerName', 'race', 'alignment', 'xp', 'age', 'size', 'height', 'weight', 'eyes', 'skin', 'hair'];
+  const fieldsInfo = ['classLevel', 'background', 'playerName', 'race', 'alignment', 'xp', 'age', 'size', 'height', 'weight', 'eyes', 'skin', 'hair', 'type'];
   fieldsInfo.forEach(f => { let el = document.getElementById('info-'+f); if(el) el.value = char.info[f] || ''; });
   document.getElementById('pc-name').value = char.name;
 

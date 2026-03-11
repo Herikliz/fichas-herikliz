@@ -281,6 +281,26 @@
           <div><label>Cor dos Olhos</label><input type="text" id="info-eyes" oninput="updateField('info', 'eyes', this.value)"></div>
           <div><label>Cor da Pele</label><input type="text" id="info-skin" oninput="updateField('info', 'skin', this.value)"></div>
           <div><label>Cor do Cabelo</label><input type="text" id="info-hair" oninput="updateField('info', 'hair', this.value)"></div>
+          <div>
+              <label>Tipo</label>
+              <select id="info-type" onchange="updateField('info', 'type', this.value)">
+                  <option value="">Selecione...</option>
+                  <option value="Aberração">Aberração</option>
+                  <option value="Besta">Besta</option>
+                  <option value="Celestial">Celestial</option>
+                  <option value="Constructo">Constructo</option>
+                  <option value="Corruptor">Corruptor</option>
+                  <option value="Dragão">Dragão</option>
+                  <option value="Elemental">Elemental</option>
+                  <option value="Fada">Fada</option>
+                  <option value="Gigante">Gigante</option>
+                  <option value="Humanoide">Humanoide</option>
+                  <option value="Limo">Limo</option>
+                  <option value="Monstruosidade">Monstruosidade</option>
+                  <option value="Morto-vivo">Morto-vivo</option>
+                  <option value="Planta">Planta</option>
+              </select>
+          </div>
       </div>
 
       <div class="page-2-grid">
